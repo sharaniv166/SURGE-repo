@@ -1,0 +1,2702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   SURGE — design tokens
+   UI type: Inter (readable enterprise sans). Display type (intro
+   cinematic + logo mark only): Big Shoulders Display. Data/ID type:
+   IBM Plex Mono.
+   ============================================================ */
+:root{
+  --bg:#f3f4f6;
+  --surface:#ffffff;
+  --surface-2:#eceef1;
+  --border:#d7dbe0;
+  --text:#12161b;
+  --text-dim:#5a6472;
+  --text-faint:#8992a0;
+  --accent:#c5601f;
+  --accent-ink:#ffffff;
+  --accent-soft:#f3e2d3;
+  --data:#0f8a83;
+  --data-soft:#d8f0ee;
+  --good:#1c8a5a;
+  --good-soft:#dbf3e6;
+  --warn:#8a6a10;
+  --warn-soft:#f7ecc9;
+  --critical:#b3261e;
+  --critical-soft:#f9dcda;
+  --shadow: 0 1px 2px rgba(15,20,25,.06), 0 8px 24px -12px rgba(15,20,25,.15);
+  --radius:10px;
+  --font-display:'Big Shoulders Display',sans-serif;
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --ambient-opacity:.24;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0c0f;
+    --surface:#13171c;
+    --surface-2:#1a1f26;
+    --border:#262d36;
+    --text:#eef2f5;
+    --text-dim:#a2acb8;
+    --text-faint:#69737f;
+    --accent:#e8862e;
+    --accent-ink:#1a0f04;
+    --accent-soft:#3a2412;
+    --data:#3fd0c9;
+    --data-soft:#0e2b29;
+    --good:#35d48a;
+    --good-soft:#0f2b1f;
+    --warn:#f0c239;
+    --warn-soft:#2e2610;
+    --critical:#ef5350;
+    --critical-soft:#2e1414;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.6);
+    --ambient-opacity:.32;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0c0f;
+  --surface:#13171c;
+  --surface-2:#1a1f26;
+  --border:#262d36;
+  --text:#eef2f5;
+  --text-dim:#a2acb8;
+  --text-faint:#69737f;
+  --accent:#e8862e;
+  --accent-ink:#1a0f04;
+  --accent-soft:#3a2412;
+  --data:#3fd0c9;
+  --data-soft:#0e2b29;
+  --good:#35d48a;
+  --good-soft:#0f2b1f;
+  --warn:#f0c239;
+  --warn-soft:#2e2610;
+  --critical:#ef5350;
+  --critical-soft:#2e1414;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.6);
+  --ambient-opacity:.32;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+html{overflow-x:hidden;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.5;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+img{max-width:100%;}
+[hidden]{display:none!important;}
+a{color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+input,select{font-family:inherit;}
+::selection{background:var(--accent);color:var(--accent-ink);}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+}
+
+/* ============================================================
+   INTRO — cinematic scene sequence
+   ============================================================ */
+#intro{position:fixed;inset:0;background:radial-gradient(ellipse 140% 100% at 50% 38%,#10151b 0%,#060809 72%);color:#eef2f5;overflow:hidden;z-index:200;}
+#intro::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 70% at 50% 45%,#000 40%,transparent 92%);}
+#intro-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
+.intro-overlay{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;pointer-events:none;}
+.intro-caption{font-family:var(--font-body);font-weight:600;font-size:clamp(15px,2.4vw,20px);color:#dfe5ea;letter-spacing:.01em;max-width:640px;opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease;}
+.intro-caption.show{opacity:1;transform:translateY(0);}
+.intro-big{font-family:var(--font-mono);font-weight:600;font-size:clamp(64px,14vw,150px);line-height:1;color:#eef2f5;opacity:0;transform:scale(.92);transition:opacity .5s ease,transform .5s ease;}
+.intro-big.show{opacity:1;transform:scale(1);}
+.intro-big small{display:block;font-family:var(--font-body);font-weight:700;font-size:clamp(12px,1.6vw,16px);letter-spacing:.22em;color:var(--accent);margin-top:10px;text-transform:uppercase;}
+.intro-logo{font-family:var(--font-display);font-weight:800;font-size:clamp(48px,9vw,110px);letter-spacing:.01em;text-transform:uppercase;opacity:0;transform:scale(.85);transition:opacity .6s cubic-bezier(.16,.8,.24,1),transform .6s cubic-bezier(.16,.8,.24,1);display:flex;align-items:center;gap:16px;}
+.intro-logo.show{opacity:1;transform:scale(1);}
+.intro-logo .dot{width:.16em;height:.16em;border-radius:50%;background:var(--accent);box-shadow:0 0 0 .09em rgba(232,134,46,.25);}
+.intro-desc{font-family:var(--font-body);font-weight:500;font-size:clamp(13px,1.7vw,15.5px);color:#8f9aa5;letter-spacing:.005em;margin-top:14px;max-width:46ch;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease;}
+.intro-desc.show{opacity:1;transform:translateY(0);}
+.intro-tagline{font-family:var(--font-body);font-weight:500;font-size:clamp(14px,2vw,19px);color:#aab4bd;margin-top:10px;max-width:52ch;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease;}
+.intro-tagline.show{opacity:1;transform:translateY(0);}
+#intro-skip{position:absolute;top:22px;right:22px;z-index:5;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#eef2f5;padding:9px 16px;border-radius:100px;font-size:12.5px;font-weight:600;letter-spacing:.03em;display:flex;align-items:center;gap:6px;transition:background .15s ease,border-color .15s ease;pointer-events:auto;}
+#intro-skip:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);}
+#intro-enter{position:relative;z-index:5;margin-top:32px;background:var(--accent);color:var(--accent-ink);border:none;padding:16px 30px;border-radius:9px;font-weight:700;font-size:15px;letter-spacing:.01em;display:inline-flex;align-items:center;gap:10px;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease,box-shadow .15s ease,filter .15s ease;pointer-events:none;}
+#intro-enter.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+#intro-enter:hover{filter:brightness(1.08);box-shadow:0 14px 30px -12px rgba(232,134,46,.55);}
+.intro-progress{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;}
+.intro-progress i{width:20px;height:3px;border-radius:2px;background:rgba(255,255,255,.16);transition:background .2s ease;}
+.intro-progress i.done{background:var(--accent);}
+.intro-progress i.active{background:#eef2f5;}
+#intro.exiting{transition:opacity .28s ease;opacity:0;pointer-events:none;}
+
+/* ============================================================
+   AMBIENT BACKGROUND (post-entry, behind app content)
+   ============================================================ */
+#app-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--ambient-opacity);filter:blur(.35px);}
+
+/* ============================================================
+   APP SHELL
+   Note: #app itself is intentionally transparent (not var(--bg))
+   so #app-ambient shows through the page gutters/gaps between
+   cards. Every actual UI surface below (sidebar, topbar, cards,
+   tables, panels) carries its own solid var(--surface)/var(--bg)
+   background, so text and controls stay fully opaque and readable
+   — only the empty space around them reveals the ambient layer.
+   ============================================================ */
+#app{display:none;min-height:100vh;background:transparent;position:relative;z-index:1;}
+#app.active{display:flex;}
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid var(--border);}
+.sidebar-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);}
+.sidebar-brand b{font-weight:800;font-size:18px;letter-spacing:.01em;}
+.sidebar-brand small{display:block;font-size:10px;color:var(--text-faint);font-family:var(--font-mono);letter-spacing:.08em;}
+.nav-list{list-style:none;padding:12px 10px;flex:1;overflow-y:auto;}
+.nav-list li + li{margin-top:2px;}
+.nav-link{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--text-dim);transition:background .15s ease,color .15s ease;position:relative;text-decoration:none;width:100%;text-align:left;border:none;background:transparent;}
+.nav-link svg{width:17px;height:17px;flex-shrink:0;}
+.nav-link:hover{background:var(--surface-2);color:var(--text);}
+.nav-link.active{background:var(--accent-soft);color:var(--accent);font-weight:700;}
+.nav-link .badge{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;background:var(--critical-soft);color:var(--critical);padding:1px 6px;border-radius:100px;font-weight:600;}
+.nav-more{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.nav-more-btn .chevron{margin-left:auto;transition:transform .18s ease;}
+.nav-more-btn .chevron.open{transform:rotate(180deg);}
+.nav-sublist{list-style:none;padding-left:4px;margin-top:2px;}
+.nav-sublist li + li{margin-top:2px;}
+.sidebar-foot{padding:14px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-faint);}
+.sidebar-foot .demo-chip{display:inline-flex;align-items:center;gap:6px;background:var(--warn-soft);color:var(--warn);border-radius:100px;padding:4px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;font-weight:600;margin-bottom:8px;}
+
+.nav-toggle{display:none;background:var(--surface-2);border:1px solid var(--border);width:36px;height:36px;border-radius:8px;align-items:center;justify-content:center;color:var(--text);flex-shrink:0;}
+.sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(6,8,10,.45);z-index:69;}
+@media (max-width:900px){
+  #app.active{position:relative;}
+  .sidebar{position:fixed;left:0;top:0;z-index:70;transform:translateX(-100%);transition:transform .25s cubic-bezier(.16,.8,.24,1);box-shadow:16px 0 40px -20px rgba(0,0,0,.3);}
+  .sidebar.open{transform:translateX(0);}
+  .nav-toggle{display:flex;}
+  .sidebar-scrim.open{display:block;}
+  .topbar-stats{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 6px;margin-left:0;order:3;padding-top:10px;border-top:1px solid var(--border);margin-top:10px;}
+  .tstat{padding:0;text-align:left;border-left:none!important;min-width:0;}
+  .tstat .v{font-size:16px;}
+  .tstat .l{white-space:normal;}
+  .screen{padding:16px;}
+}
+
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column;width:100%;}
+.topbar{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:20;flex-wrap:wrap;}
+.topbar h1{font-weight:700;font-size:19px;letter-spacing:-.01em;}
+.topbar .sub{font-size:12px;color:var(--text-faint);margin-top:1px;}
+.topbar-stats{display:flex;gap:0;margin-left:auto;align-items:stretch;}
+.tstat{padding:2px 20px;border-left:1px solid var(--border);text-align:right;}
+.tstat:first-child{border-left:none;}
+.tstat .v{font-family:var(--font-mono);font-size:19px;font-weight:600;line-height:1.1;}
+.tstat .l{font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.tstat .v.accent{color:var(--accent);}
+.tstat .v.critical{color:var(--critical);}
+.tstat .v.good{color:var(--good);}
+
+.screen{padding:26px;max-width:1440px;}
+.screen-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:14px;}
+.screen-head h2{font-weight:800;font-size:22px;letter-spacing:-.01em;}
+.screen-head p{color:var(--text-dim);font-size:13.5px;margin-top:4px;max-width:60ch;}
+.screen-question{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--data);background:var(--data-soft);padding:4px 10px;border-radius:100px;margin-bottom:10px;}
+
+.grid{display:grid;gap:16px;}
+.g-4{grid-template-columns:repeat(4,1fr);}
+.g-3{grid-template-columns:repeat(3,1fr);}
+.g-2{grid-template-columns:2fr 1fr;}
+@media (max-width:1180px){.g-4{grid-template-columns:repeat(2,1fr);}.g-3{grid-template-columns:repeat(2,1fr);}.g-2{grid-template-columns:1fr;}}
+@media (max-width:640px){.g-4,.g-3{grid-template-columns:1fr;}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+.card-pad{padding:20px 22px;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.card-head h3{font-size:14px;font-weight:700;letter-spacing:.01em;}
+.card-head .hint{font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+
+.stat-tile{padding:18px 20px;}
+.stat-tile .l{font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.stat-tile .v{font-family:var(--font-mono);font-size:32px;font-weight:600;margin-top:8px;line-height:1;}
+.stat-tile .d{font-size:12px;margin-top:8px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
+.stat-tile .d.up{color:var(--good);}
+.stat-tile .d.down{color:var(--critical);}
+
+.btn{border-radius:7px;font-weight:600;font-size:13px;padding:9px 16px;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .15s ease;display:inline-flex;align-items:center;gap:8px;}
+.btn:hover{border-color:var(--text-faint);}
+.btn-accent{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.btn-accent:hover{filter:brightness(1.08);}
+.btn-accent:disabled{opacity:.6;cursor:progress;}
+.btn-sm{padding:6px 11px;font-size:12px;}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--text-dim);}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text);}
+.btn-xl{padding:18px 32px;font-size:16px;border-radius:10px;box-shadow:0 16px 34px -14px rgba(232,134,46,.5);}
+.btn-xl:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px rgba(232,134,46,.6);}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;letter-spacing:.02em;text-transform:uppercase;font-family:var(--font-mono);}
+.pill-good{background:var(--good-soft);color:var(--good);}
+.pill-warn{background:var(--warn-soft);color:var(--warn);}
+.pill-critical{background:var(--critical-soft);color:var(--critical);}
+.pill-data{background:var(--data-soft);color:var(--data);}
+.pill-neutral{background:var(--surface-2);color:var(--text-dim);}
+.pill .dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:700;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-2);white-space:nowrap;}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr{cursor:pointer;transition:background .1s ease;}
+tbody tr:hover{background:var(--surface-2);}
+tbody tr.selected{background:var(--accent-soft);}
+tbody tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto;}
+.name-cell b{display:block;font-size:13px;}
+.name-cell span{display:block;font-size:11px;color:var(--text-faint);font-family:var(--font-mono);margin-top:1px;}
+.bar-cell{width:70px;height:6px;background:var(--surface-2);border-radius:100px;overflow:hidden;}
+.bar-cell i{display:block;height:100%;background:var(--accent);border-radius:100px;}
+
+.toolbar{display:flex;gap:10px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.toolbar input[type=search], .toolbar select{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:12.5px;color:var(--text);}
+.toolbar input[type=search]{flex:1;min-width:160px;}
+.toolbar .count{margin-left:auto;font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+
+.reason-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:11px;margin:2px 4px 2px 0;}
+.reason-chip b{font-family:var(--font-mono);color:var(--accent);}
+
+.detail-panel{position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:-16px 0 40px -20px rgba(0,0,0,.3);transform:translateX(100%);transition:transform .28s cubic-bezier(.16,.8,.24,1);z-index:60;display:flex;flex-direction:column;}
+.detail-panel.open{transform:translateX(0);}
+.detail-panel .dp-head{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;}
+.detail-panel .dp-body{padding:20px 22px;overflow-y:auto;flex:1;}
+.dp-close{background:var(--surface-2);border:none;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+.dp-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:12.5px;}
+.dp-row .k{color:var(--text-faint);}
+.dp-row .v{font-family:var(--font-mono);font-weight:600;}
+.scrim{position:fixed;inset:0;background:rgba(6,8,10,.4);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.scrim.open{opacity:1;pointer-events:auto;}
+
+.agent-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:border-color .15s ease,transform .15s ease;}
+.agent-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.agent-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.agent-card .top{display:flex;justify-content:space-between;align-items:flex-start;}
+.agent-avatar{width:38px;height:38px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:13px;color:var(--data);flex-shrink:0;}
+.agent-card h4{font-size:14px;font-weight:700;margin-top:12px;}
+.agent-card .zone{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
+.util-track{height:6px;background:var(--surface-2);border-radius:100px;margin-top:12px;overflow:hidden;}
+.util-track i{display:block;height:100%;border-radius:100px;background:var(--data);transition:width .5s ease;}
+.util-track i.over{background:var(--critical);}
+
+.delta-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px;opacity:0;transform:translateY(6px);animation:deltaIn .4s ease forwards;}
+.delta-row:last-child{border-bottom:none;}
+@keyframes deltaIn{to{opacity:1;transform:translateY(0);}}
+.delta-row .agent{font-weight:700;flex:0 0 130px;}
+.delta-row .nums{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);color:var(--text-dim);}
+.delta-row .arrow{color:var(--text-faint);}
+.delta-row .after-n{font-weight:700;color:var(--text);}
+.delta-badge{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:auto;}
+.delta-badge.pos{background:var(--good-soft);color:var(--good);}
+.delta-badge.neg{background:var(--critical-soft);color:var(--critical);}
+.delta-badge.zero{background:var(--surface-2);color:var(--text-faint);}
+
+.map-wrap{position:relative;background:var(--surface-2);border-radius:var(--radius);overflow:hidden;}
+#opmap{width:100%;height:560px;display:block;}
+.map-legend{position:absolute;bottom:16px;left:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;display:flex;gap:14px;box-shadow:var(--shadow);flex-wrap:wrap;}
+.map-legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
+.map-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.map-tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:11.5px;padding:8px 11px;border-radius:7px;font-family:var(--font-mono);opacity:0;transition:opacity .12s ease;z-index:10;max-width:220px;line-height:1.5;}
+.map-tip.show{opacity:1;}
+@keyframes hubPulse{0%{r:26;stroke-opacity:.55;}100%{r:44;stroke-opacity:0;}}
+
+.chart-box{position:relative;height:230px;width:100%;}
+.chart-box svg{width:100%;height:100%;}
+
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;transition:border-color .15s ease,background .15s ease;cursor:pointer;}
+.dropzone.drag{border-color:var(--accent);background:var(--accent-soft);}
+.dropzone svg{width:34px;height:34px;color:var(--text-faint);margin-bottom:12px;}
+.doc-analysis{margin-top:18px;}
+.doc-check{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.doc-check:last-child{border-bottom:none;}
+.check-ic{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.check-ic.pass{background:var(--good-soft);color:var(--good);}
+.check-ic.fail{background:var(--critical-soft);color:var(--critical);}
+.check-ic.warn{background:var(--warn-soft);color:var(--warn);}
+.doc-check b{font-size:13px;display:block;}
+.doc-check p{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.doc-preview{position:relative;max-width:220px;margin-top:14px;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.captured-img{display:block;width:100%;}
+.scan-bar{position:absolute;left:0;right:0;height:34%;background:linear-gradient(180deg,transparent,rgba(63,208,201,.32),transparent);animation:scanSweep 1s ease-in-out infinite;}
+@keyframes scanSweep{0%{top:-34%;}100%{top:100%;}}
+.analyzing-line{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-dim);margin-top:12px;}
+.analyzing-line .spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--data);animation:spin .7s linear infinite;flex-shrink:0;}
+.match-collapse{border-top:1px solid var(--border);margin-top:18px;padding-top:14px;}
+.match-collapse-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;background:transparent;border:none;color:var(--text-dim);font-size:12.5px;font-weight:600;padding:4px 0;}
+.match-collapse-toggle svg{transition:transform .18s ease;}
+.match-collapse-toggle.open svg{transform:rotate(180deg);}
+.match-collapse-body{margin-top:14px;}
+
+.rule-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border);font-size:12.5px;}
+.rule-row:last-child{border-bottom:none;}
+.rule-ic{width:18px;height:18px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+.rule-ic.ok{background:var(--good-soft);color:var(--good);}
+.rule-ic.no{background:var(--critical-soft);color:var(--critical);}
+
+.sim-controls{display:flex;flex-direction:column;gap:20px;}
+.sim-field label{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:8px;}
+.sim-field label .v{font-family:var(--font-mono);color:var(--accent);}
+input[type=range]{width:100%;accent-color:var(--accent);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-row .t-label b{font-size:13px;display:block;}
+.toggle-row .t-label span{font-size:11.5px;color:var(--text-faint);}
+.switch{position:relative;width:40px;height:22px;background:var(--surface-2);border:1px solid var(--border);border-radius:100px;flex-shrink:0;cursor:pointer;transition:background .15s ease;}
+.switch.on{background:var(--accent);border-color:var(--accent);}
+.switch i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.switch.on i{transform:translateX(18px);}
+
+.optimize-overlay{position:fixed;inset:0;background:rgba(6,8,10,.82);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.optimize-overlay.show{opacity:1;pointer-events:auto;}
+.optimize-modal{text-align:center;color:#eef2f5;max-width:420px;padding:20px;}
+.optimize-modal .spinner{width:56px;height:56px;border-radius:50%;border:3px solid rgba(232,134,46,.2);border-top-color:var(--accent);margin:0 auto 26px;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.optimize-modal .step{font-family:var(--font-mono);font-size:13px;color:#8b95a0;margin-top:8px;opacity:0;transform:translateY(6px);transition:opacity .3s ease,transform .3s ease;}
+.optimize-modal .step.show{opacity:1;transform:translateY(0);color:#eef2f5;}
+.optimize-modal .step.done{color:var(--data);}
+
+.alert-row{display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.alert-row:last-child{border-bottom:none;}
+.alert-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.alert-row.critical .alert-ic{background:var(--critical-soft);color:var(--critical);}
+.alert-row.warn .alert-ic{background:var(--warn-soft);color:var(--warn);}
+.alert-row.good .alert-ic{background:var(--good-soft);color:var(--good);}
+.alert-row h4{font-size:13.5px;font-weight:700;}
+.alert-row p{font-size:12.5px;color:var(--text-dim);margin-top:3px;line-height:1.5;}
+.alert-row .when{font-size:11px;color:var(--text-faint);font-family:var(--font-mono);margin-left:auto;white-space:nowrap;padding-left:12px;}
+
+.empty-state{padding:60px 20px;text-align:center;color:var(--text-faint);}
+.priority-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s ease,transform .3s cubic-bezier(.16,.8,.24,1);}
+.priority-item:hover{background:var(--surface-2);}
+.priority-rank{width:30px;height:30px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:12.5px;flex-shrink:0;}
+.priority-rank.top{background:var(--accent);color:var(--accent-ink);}
+.priority-score{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:13px;flex-shrink:0;background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--surface-2) 0);}
+.priority-score span{width:34px;height:34px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11.5px;}
+
+.fade-swap{animation:fadeSwap .35s ease;}
+@keyframes fadeSwap{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.count-pulse{animation:countPulse .5s ease;}
+@keyframes countPulse{0%{transform:scale(1);}30%{transform:scale(1.12);color:var(--accent);}100%{transform:scale(1);}}
+
+/* tooltips */
+.tip{position:relative;cursor:help;}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 9px);left:0;background:var(--text);color:var(--bg);font-family:var(--font-body);font-weight:500;font-size:11.5px;line-height:1.4;padding:8px 11px;border-radius:7px;width:max-content;max-width:230px;opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:200;box-shadow:var(--shadow);}
+.tip::before{content:'';position:absolute;bottom:calc(100% + 4px);left:10px;border:5px solid transparent;border-top-color:var(--text);opacity:0;transition:opacity .15s ease;}
+.tip:hover::after,.tip:focus-visible::after{opacity:1;transform:translateY(0);}
+.tip:hover::before,.tip:focus-visible::before{opacity:1;}
+
+/* priority focus slider */
+.focus-slider-wrap{padding:4px 4px 0;}
+.focus-slider-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+.focus-slider-labels .l1{color:var(--data);}
+.focus-slider-labels .l2{color:var(--accent);}
+input[type=range].focus-slider{-webkit-appearance:none;appearance:none;height:8px;border-radius:100px;background:linear-gradient(90deg,var(--data),var(--surface-2) 50%,var(--accent));outline:none;}
+input[type=range].focus-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:6px;background:var(--surface);border:2px solid var(--text);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;margin-top:0;}
+input[type=range].focus-slider::-moz-range-thumb{width:22px;height:22px;border-radius:6px;background:var(--surface);border:2px solid var(--text);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
+input[type=range].focus-slider::-moz-range-track{height:8px;border-radius:100px;background:linear-gradient(90deg,var(--data),var(--surface-2) 50%,var(--accent));}
+.focus-slider-caption{font-size:12px;color:var(--text-faint);margin-top:10px;line-height:1.5;}
+.focus-value{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);margin-top:6px;text-align:center;}
+
+/* priority cards */
+.priority-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media (max-width:1180px){.priority-cards{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:640px){.priority-cards{grid-template-columns:1fr;}}
+.p-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:10px;}
+.p-card .p-top{display:flex;align-items:flex-start;gap:12px;}
+.p-card .p-name{font-size:14.5px;font-weight:700;flex:1;min-width:0;}
+.p-card .p-id{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-top:2px;}
+.p-card .p-reason{font-size:12.5px;color:var(--text-dim);line-height:1.5;}
+.p-card .p-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.p-card .p-action{background:var(--surface-2);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text);}
+.p-card .p-action b{color:var(--accent);}
+.p-why-btn{background:transparent;border:none;color:var(--data);font-size:11.5px;font-weight:700;padding:0;text-align:left;display:flex;align-items:center;gap:5px;}
+.p-why-btn svg{transition:transform .18s ease;width:12px;height:12px;}
+.p-why-btn.open svg{transform:rotate(180deg);}
+.p-why-body{display:none;font-size:12px;color:var(--text-dim);line-height:1.65;background:var(--surface-2);border-radius:8px;padding:10px 12px;}
+.p-why-body.open{display:block;}
+.p-why-body ul{padding-left:16px;}
+
+.rank-toast{display:flex;align-items:center;gap:10px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:10px 14px;font-size:12.5px;font-weight:600;margin-bottom:14px;opacity:0;transform:translateY(-6px);transition:opacity .25s ease,transform .25s ease;}
+.rank-toast.show{opacity:1;transform:translateY(0);}
+
+.scroll-x{overflow-x:auto;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:100px;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     INTRO — cinematic scene sequence (replaces marketing landing)
+     ============================================================ -->
+<div id="intro">
+  <canvas id="intro-canvas"></canvas>
+  <button id="intro-skip">SKIP INTRO →</button>
+  <div class="intro-overlay">
+    <div class="intro-caption" id="intro-caption"></div>
+    <div class="intro-big" id="intro-big" hidden></div>
+    <div class="intro-logo" id="intro-logo" hidden><span class="dot"></span>SURGE</div>
+    <div class="intro-desc" id="intro-desc" hidden></div>
+    <div class="intro-tagline" id="intro-tagline" hidden></div>
+    <button id="intro-enter">ENTER SURGE →</button>
+  </div>
+  <div class="intro-progress" id="intro-progress"></div>
+</div>
+
+<!-- ============================================================
+     APP
+     ============================================================ -->
+<canvas id="app-ambient"></canvas>
+<div id="app">
+  <div class="sidebar-scrim" id="sidebar-scrim"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="dot"></span><div><b>SURGE</b><small>OPS ENGINE</small></div></div>
+    <ul class="nav-list" id="nav-list"></ul>
+    <div class="sidebar-foot">
+      <div class="demo-chip">● DEMO / SIMULATED DATA</div>
+      <div>Not affiliated with or claiming to be Razorpay production data.</div>
+    </div>
+  </aside>
+  <div class="main-col">
+    <div class="topbar">
+      <button class="nav-toggle" id="nav-toggle" aria-label="Open navigation">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div>
+        <h1 id="screen-title">Command Center</h1>
+        <div class="sub" id="screen-sub">What needs attention right now.</div>
+      </div>
+      <div class="topbar-stats" id="topbar-stats"></div>
+    </div>
+    <div class="screen" id="screen-root"></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="detail-panel" id="detail-panel"></div>
+
+<div class="optimize-overlay" id="optimize-overlay">
+  <div class="optimize-modal">
+    <div class="spinner"></div>
+    <div id="opt-steps"></div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   SURGE — application script
+   Sections: RNG/util → data generation → domain algorithms
+   → state → router → render functions per screen → map → doc
+   copilot (canvas CV) → native SVG charts → intro engine → init
+   ================================================================ */
+
+/* ---------- seeded RNG (deterministic dataset across a session) ---------- */
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rng = mulberry32(20260904);
+const pick = (arr) => arr[Math.floor(rng()*arr.length)];
+const randInt = (a,b) => Math.floor(a + rng()*(b-a+1));
+const randFloat = (a,b) => a + rng()*(b-a);
+const fmtINR = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+const fmtLakh = (n) => '₹' + n.toFixed(1) + 'L';
+const fmtPct = (n) => n.toFixed(1) + '%';
+const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
+const uid = (prefix,n,len) => prefix + '-' + String(n).padStart(len,'0');
+const prefersReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- reference data ---------- */
+const ZONES = [
+  {id:'Z1', name:'Coastal Andhra', cities:['Amalapuram','Rajahmundry','Kakinada','Vijayawada'], cx:0.22, cy:0.72},
+  {id:'Z2', name:'Telangana Belt', cities:['Warangal','Nizamabad','Karimnagar','Khammam'], cx:0.40, cy:0.55},
+  {id:'Z3', name:'North Karnataka', cities:['Belagavi','Hubballi','Vijayapura'], cx:0.30, cy:0.38},
+  {id:'Z4', name:'West Maharashtra', cities:['Nashik','Solapur','Kolhapur','Aurangabad'], cx:0.55, cy:0.30},
+  {id:'Z5', name:'Central India', cities:['Indore','Ujjain','Jabalpur','Gwalior'], cx:0.68, cy:0.60},
+  {id:'Z6', name:'Tamil Heartland', cities:['Madurai','Salem','Coimbatore','Tiruchirappalli'], cx:0.78, cy:0.80},
+];
+const BIZ_PREFIX = ['Sri','Om','Shree','New','Royal','Metro','Annapurna','Balaji','Ganesh','Laxmi','National','City','Krishna','Vinayaka','Sai','Durga','Ashoka','Prime','Star','Classic'];
+const BIZ_TYPE = ['Kirana Store','Textiles','General Stores','Traders','Enterprises','Medical & Pharmacy','Electronics','Sweets & Bakery','Hardware Centre','Mobile Zone','Departmental Store','Fashion Hub','Provision Store','Auto Spares','Footwear Corner','Stationery Mart','Fresh Mart','Cafe & Snacks','Agro Centre','Book Depot'];
+const FIRST_NAMES = ['Arjun','Priya','Mohammed','Sneha','Ravi','Ananya','Vikram','Deepika','Suresh','Kavya','Rahul','Neha','Karthik','Divya','Faizan','Meera','Aditya','Pooja','Sandeep','Lakshmi','Naveen','Swathi','Imran','Radhika','Bhavesh','Anjali'];
+const LAST_NAMES = ['Reddy','Nair','Kulkarni','Teja','Iyer','Singh','Rao','Babu','Menon','Verma','Joshi','Patil','Sharma','Prasad','Kumar','Chowdary','Deshmukh','Pillai','Naidu','Gowda'];
+
+function genBusinessName(city){
+  return `${pick(BIZ_PREFIX)} ${pick(BIZ_TYPE)}` + (rng()>.6 ? `, ${city}` : '');
+}
+function genPersonName(){ return `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`; }
+
+/* ---------- merchant + agent generation ---------- */
+const TOTAL_MERCHANTS = 500;
+const INITIAL_AGENTS = 12;
+const INITIAL_DAYS = 9;
+const DEADLINE_LABEL = '15 Sep 2026';
+
+function generateMerchants(){
+  const list = [];
+  for(let i=0;i<TOTAL_MERCHANTS;i++){
+    const zone = ZONES[i % ZONES.length];
+    const city = pick(zone.cities);
+    const turnoverLakh = +(5 + 145*Math.pow(rng(),1.8)).toFixed(1);
+    const docReadiness = +randFloat(0.30,0.90).toFixed(2);
+    const revenueMonthly = Math.round((8000 + 900000*Math.pow(rng(),2.1)));
+    const priorAttempts = rng()>0.78 ? randInt(1,2) : 0;
+    const contacted = rng()>0.55;
+    const docsUploaded = rng()>0.4;
+    list.push({
+      id: uid('MID', 88230000+i, 8),
+      name: genBusinessName(city),
+      city, zoneId: zone.id, zoneName: zone.name,
+      turnoverLakh, docReadiness, revenueMonthly,
+      priorAttempts, contacted, docsUploaded,
+      status: priorAttempts>0 ? 'failed_attempt' : (contacted ? 'scheduled' : 'pending'),
+      qrSoundbox: rng()>0.5 ? 'Soundbox' : 'QR Only',
+      lastContact: priorAttempts>0 ? `${randInt(2,8)} days ago` : (contacted ? `${randInt(1,4)} days ago` : 'Never contacted'),
+      angle: randFloat(0,Math.PI*2), radius: randFloat(0.05,0.16),
+    });
+  }
+  return list;
+}
+function generateAgents(count){
+  const list = [];
+  for(let i=0;i<count;i++){
+    const zone = ZONES[i % ZONES.length];
+    list.push({
+      id: uid('AGT', 100+i, 3),
+      name: genPersonName(),
+      zoneId: zone.id, zoneName: zone.name,
+      status: rng()>0.15 ? 'active' : 'travelling',
+      capacity: 0, assigned: 0,
+      loadFactor: +randFloat(0.8,1.22).toFixed(2),
+    });
+  }
+  return list;
+}
+
+const MERCHANTS = generateMerchants();
+const AGENTS_MASTER = generateAgents(INITIAL_AGENTS);
+
+/* ================================================================
+   DOMAIN ALGORITHMS
+   ================================================================ */
+
+/* Compliant-path eligibility — mirrors RBI PA-PG 2025 lighter path for
+   merchants at/under ₹40L turnover with adequate existing documentation. */
+function evaluateCompliantPath(m){
+  const turnoverOk = m.turnoverLakh <= 40;
+  const docsOk = m.docReadiness >= 0.6;
+  const eligible = turnoverOk && docsOk;
+  return {
+    eligible,
+    rules: [
+      {label:`Annual turnover ₹${m.turnoverLakh}L ${turnoverOk?'≤':'>'} ₹40L threshold`, pass:turnoverOk},
+      {label:`Existing document quality score ${(m.docReadiness*100).toFixed(0)}% ${docsOk?'≥':'<'} 60% bar`, pass:docsOk},
+      {label:'PAN + business registration on file', pass:m.docsUploaded},
+    ],
+    path: eligible ? 'Remote / Video-KYC (4-step light path)' : 'In-person field verification required',
+  };
+}
+
+/* Explainable priority score, 0-100. Blends two components — a deadline/
+   urgency component (revisit pressure, prior failed attempts, document
+   risk) and a business-impact component (revenue at risk) — according to
+   focusWeight (0 = pure deadline urgency, 1 = pure business impact,
+   0.5 = the original balanced default used everywhere except the AI
+   Priority screen's slider). */
+function computePriority(m, daysRemaining, focusWeight=0.5){
+  const fw = clamp(focusWeight, 0, 1);
+  const businessMult = fw*2;        // 0 → 2
+  const urgencyMult = (1-fw)*2;     // 2 → 0
+  const reasons = [];
+  let score = 0;
+
+  const revPts = clamp(m.revenueMonthly/900000*42, 0, 42) * businessMult;
+  score += revPts;
+  reasons.push({label:`${fmtINR(m.revenueMonthly)}/mo transaction volume at risk`, pts:revPts, kind:'business'});
+
+  const expectedVisits = 1 + (1-m.docReadiness)*1.4;
+  const pressure = clamp((expectedVisits/Math.max(daysRemaining,1))*100, 0, 34) * urgencyMult;
+  score += pressure;
+  reasons.push({label:`Needs ~${expectedVisits.toFixed(1)} visits, ${daysRemaining}d left`, pts:pressure, kind:'urgency'});
+
+  const attemptPts = m.priorAttempts * 12 * urgencyMult;
+  score += attemptPts;
+  if(m.priorAttempts>0) reasons.push({label:`${m.priorAttempts} prior failed attempt(s)`, pts:attemptPts, kind:'urgency'});
+
+  const docPts = (1-m.docReadiness) * 12 * urgencyMult;
+  score += docPts;
+  reasons.push({label:`Document readiness ${(m.docReadiness*100).toFixed(0)}% — revisit risk`, pts:docPts, kind:'urgency'});
+
+  return {score: clamp(Math.round(score),0,100), reasons: reasons.sort((a,b)=>b.pts-a.pts), focusWeight:fw};
+}
+
+/* Core simulation engine — day-by-day capacity model.
+   optimizedRouting: zone-clustered dispatch + priority ordering, higher
+     effective daily capacity per agent (less cross-zone travel waste).
+   docCopilot: +success-probability & +capacity from catching bad docs
+     before an agent leaves (fewer wasted return trips).
+   compliantOffload: RBI-eligible merchants routed off the field queue
+     entirely via the remote/video path.
+   repeatVisitRate (0-30, %): merchants who no-show / reschedule and need
+     a repeat visit — reduces effective per-visit success probability. */
+function runSimulation({agentCount, days, optimizedRouting, docCopilot, compliantOffload, repeatVisitRate=0}){
+  // Seed a local RNG from the exact input combination so identical
+  // settings always reproduce identical results (a real projection
+  // tool shouldn't jitter between two runs of the same scenario —
+  // this was previously drawing from the shared, unseeded
+  // Math.random(), so re-running the same What-If settings could
+  // silently show a different number each time).
+  const simSeedStr = `${agentCount}|${days}|${optimizedRouting}|${docCopilot}|${compliantOffload}|${repeatVisitRate}`;
+  let simSeed = 0;
+  for(let i=0;i<simSeedStr.length;i++){ simSeed = (simSeed*31 + simSeedStr.charCodeAt(i)) | 0; }
+  const simRng = mulberry32(simSeed ^ 0x53555247); // ^ 'SURG' bytes, keeps it distinct from the dataset RNG
+  let pool = MERCHANTS.map(m => ({...m, attempts:0}));
+  let offloaded = [];
+  if(compliantOffload){
+    offloaded = pool.filter(m => evaluateCompliantPath(m).eligible);
+    const offIds = new Set(offloaded.map(m=>m.id));
+    pool = pool.filter(m => !offIds.has(m.id));
+  }
+
+  if(optimizedRouting){
+    pool.forEach(m => m._pr = computePriority(m, days).score);
+    pool.sort((a,b) => a.zoneId.localeCompare(b.zoneId) || b._pr - a._pr);
+  }
+
+  const capPerAgent = optimizedRouting ? 6.0 : 5.3;
+  const capMult = docCopilot ? 1.06 : 1.0;
+  const dailyCapacityPerAgent = +(capPerAgent*capMult).toFixed(2);
+  const totalDailyCapacity = Math.max(1, Math.floor(dailyCapacityPerAgent * agentCount));
+
+  const repeatPenalty = clamp(repeatVisitRate,0,30)/100 * 0.6;
+
+  let verified = 0;
+  let queue = pool.slice();
+  const timeline = [];
+  const successBoost = docCopilot ? 0.08 : 0;
+
+  for(let d=1; d<=days; d++){
+    let slots = totalDailyCapacity;
+    const revisits = [];
+    while(slots>0 && queue.length>0){
+      const m = queue.shift();
+      slots--;
+      const p = clamp(m.docReadiness + successBoost + m.attempts*0.15 - repeatPenalty, 0.05, 0.97);
+      if(simRng() < p){ verified++; }
+      else { m.attempts++; revisits.push(m); }
+    }
+    queue = optimizedRouting ? revisits.concat(queue) : queue.concat(revisits);
+    const criticalRemainingDay = queue.filter(m => m.revenueMonthly > 200000).length;
+    timeline.push({
+      day:d,
+      pct: +(((verified+offloaded.length)/MERCHANTS.length)*100).toFixed(1),
+      revenueProtected: Math.round((verified+offloaded.length)/MERCHANTS.length * MERCHANTS.reduce((s,m)=>s+m.revenueMonthly,0)),
+      criticalRemaining: criticalRemainingDay,
+    });
+  }
+
+  const totalVerified = verified + offloaded.length;
+  const remaining = queue.length;
+  const totalRevenue = MERCHANTS.reduce((s,m)=>s+m.revenueMonthly,0);
+  const protectedRevenue = timeline.length ? timeline[timeline.length-1].revenueProtected : 0;
+  const criticalRemaining = queue.filter(m => m.revenueMonthly > 200000).length;
+
+  return {
+    completionPct: +(((totalVerified)/MERCHANTS.length)*100).toFixed(1),
+    verifiedCount: totalVerified,
+    offloadedCount: offloaded.length,
+    fieldVerified: verified,
+    remainingCount: remaining,
+    criticalRemaining,
+    dailyCapacityPerAgent,
+    totalDailyCapacity,
+    timeline,
+    totalRevenue,
+    protectedRevenue,
+    agentCount, days, optimizedRouting, docCopilot, compliantOffload, repeatVisitRate,
+  };
+}
+
+/* fuzzy string match (Levenshtein-based similarity, 0-1) — used by the
+   document-identity match tool */
+function levenshtein(a,b){
+  a=a.toLowerCase().trim(); b=b.toLowerCase().trim();
+  const m=a.length,n=b.length;
+  const dp = Array.from({length:m+1},(_,i)=>[i].concat(Array(n).fill(0)));
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]);
+  }
+  return dp[m][n];
+}
+function nameSimilarity(a,b){
+  if(!a||!b) return 0;
+  const dist = levenshtein(a,b);
+  const maxLen = Math.max(a.length,b.length,1);
+  return clamp(1 - dist/maxLen, 0, 1);
+}
+
+/* required-agent search — smallest field headcount that hits ~95%
+   projected completion under the given constraints (used by the
+   What-If Simulator's "Required Agents" output) */
+function computeRequiredAgents({days, optimizedRouting, docCopilot, compliantOffload, repeatVisitRate}){
+  for(let a=3;a<=40;a++){
+    const res = runSimulation({agentCount:a, days, optimizedRouting, docCopilot, compliantOffload, repeatVisitRate});
+    if(res.completionPct>=95) return a;
+  }
+  return '40+';
+}
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const state = {
+  route: 'command-center',
+  agents: AGENTS_MASTER.map(a=>({...a})),
+  daysRemaining: INITIAL_DAYS,
+  mode: 'baseline', // 'baseline' | 'optimized'
+  baselineResult: null,
+  optimizedResult: null,
+  selectedMerchantId: null,
+  selectedAgentId: null,
+  merchantFilters: {search:'', zone:'all', status:'all'},
+  simParams: {agentCount: INITIAL_AGENTS, days: INITIAL_DAYS, optimizedRouting:true, docCopilot:true, compliantOffload:false, repeatVisitRate:8},
+  simResult: null,
+  priorityFocus: 0.5,
+  priorityRankPrev: null, // Map merchantId -> rank, for FLIP + mover-toast
+  moreOpen: false,
+  mapRoutesDrawn: false,
+};
+
+function currentResult(){
+  return state.mode==='optimized' && state.optimizedResult ? state.optimizedResult : state.baselineResult;
+}
+
+function ensureBaseline(){
+  if(!state.baselineResult){
+    state.baselineResult = runSimulation({agentCount: state.agents.length, days: state.daysRemaining, optimizedRouting:false, docCopilot:false, compliantOffload:false});
+  }
+}
+
+/* Pure: compute per-agent workload for a given simulation result, without
+   mutating state. Used for Field Operations Before/After and for the map. */
+function computeAgentWorkloads(result){
+  const zoneGroups = {};
+  ZONES.forEach(z => zoneGroups[z.id] = []);
+  MERCHANTS.forEach(m => { if(zoneGroups[m.zoneId]) zoneGroups[m.zoneId].push(m); });
+  return state.agents.map(a => {
+    const pool = (zoneGroups[a.zoneId]||[]).slice().sort((x,y)=>computePriority(y,state.daysRemaining).score - computePriority(x,state.daysRemaining).score);
+    const cap = result ? Math.max(3, Math.round(result.dailyCapacityPerAgent)) : 6;
+    const targetAssigned = Math.min(pool.length, Math.max(1, Math.round(cap * a.loadFactor)));
+    const workload = pool.slice(0, targetAssigned);
+    const assigned = workload.length;
+    const utilPct = clamp(Math.round((assigned/cap)*100),0,140);
+    return {id:a.id, name:a.name, zoneId:a.zoneId, zoneName:a.zoneName, status:a.status, capacity:cap, assigned, utilPct, workload};
+  });
+}
+/* Back-compat mutator used by map/analytics/alerts — writes the current-
+   mode workload onto state.agents in place. */
+function buildAgentWorkloads(){
+  const computed = computeAgentWorkloads(currentResult());
+  computed.forEach((c,i)=>Object.assign(state.agents[i], c));
+}
+
+/* ================================================================
+   ANIMATION HELPERS
+   ================================================================ */
+function animateNumber(el, from, to, opts={}){
+  if(!el) return;
+  if(prefersReducedMotion() || from===to){ el.textContent = (opts.format?opts.format(to):to); return; }
+  const dur = opts.duration || 700;
+  const start = performance.now();
+  const fmt = opts.format || (v => Math.round(v));
+  function step(now){
+    const t = clamp((now-start)/dur, 0, 1);
+    const eased = 1 - Math.pow(1-t, 3);
+    const v = from + (to-from)*eased;
+    el.textContent = fmt(v);
+    if(t<1) requestAnimationFrame(step); else el.textContent = fmt(to);
+  }
+  requestAnimationFrame(step);
+}
+function crossFade(el, newHtml){
+  if(!el) return;
+  if(prefersReducedMotion()){ el.innerHTML = newHtml; return; }
+  el.style.transition = 'opacity .18s ease';
+  el.style.opacity = 0;
+  setTimeout(()=>{ el.innerHTML = newHtml; el.style.opacity = 1; }, 180);
+}
+/* FLIP reorder: call captureFlip() before DOM changes, mutate DOM, then
+   call playFlip() with the same container/selector to animate the delta. */
+function captureFlipState(container, selector){
+  const map = new Map();
+  container.querySelectorAll(selector).forEach(el => {
+    map.set(el.dataset.id, el.getBoundingClientRect());
+  });
+  return map;
+}
+function playFlip(container, selector, firstRects){
+  if(prefersReducedMotion()) return;
+  container.querySelectorAll(selector).forEach(el => {
+    const first = firstRects.get(el.dataset.id);
+    if(!first) return;
+    const last = el.getBoundingClientRect();
+    const dy = first.top - last.top;
+    if(Math.abs(dy) < 1) return;
+    el.style.transition = 'none';
+    el.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(()=>{
+      el.style.transition = 'transform .45s cubic-bezier(.16,.8,.24,1)';
+      el.style.transform = '';
+    });
+  });
+}
+
+/* ================================================================
+   NAV / ROUTER
+   ================================================================ */
+const ICONS = {
+  command:'<path d="M3 12h4l3-9 4 18 3-9h4"/>',
+  merchants:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/>',
+  priority:'<path d="M4 19V5M4 19h4M4 13h7M4 7h10"/><path d="M18 6l3 3-3 3"/>',
+  field:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  map:'<path d="M9 4v13M15 7v13M4 6l5-2 6 2 5-2v13l-5 2-6-2-5 2z"/>',
+  doc:'<path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  compliant:'<path d="M12 3l7 4v5c0 5-3.4 8.5-7 9-3.6-.5-7-4-7-9V7l7-4z"/><path d="M9 12l2 2 4-4"/>',
+  sim:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  analytics:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
+  alerts:'<path d="M12 2a6 6 0 0 0-6 6c0 5-2 6-2 7h16s-2-1-2-7a6 6 0 0 0-6-6z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  chevron:'<path d="M6 9l6 6 6-6"/>',
+};
+const PRIMARY_NAV = [
+  {id:'command-center', label:'Command Center', icon:ICONS.command},
+  {id:'priority-queue', label:'AI Priority', icon:ICONS.priority},
+  {id:'field-operations', label:'Field Operations', icon:ICONS.field},
+  {id:'operational-map', label:'Live Map', icon:ICONS.map},
+  {id:'document-copilot', label:'Document Copilot', icon:ICONS.doc},
+  {id:'simulator', label:'What-If Simulator', icon:ICONS.sim},
+];
+const SECONDARY_NAV = [
+  {id:'merchant-intelligence', label:'Merchant Intelligence', icon:ICONS.merchants},
+  {id:'compliant-path', label:'Compliant Path', icon:ICONS.compliant},
+  {id:'analytics', label:'Analytics', icon:ICONS.analytics},
+  {id:'alerts', label:'Alerts', icon:ICONS.alerts},
+];
+const SECONDARY_ROUTE_IDS = SECONDARY_NAV.map(n=>n.id);
+const SCREEN_META = {
+  'command-center': {title:'Command Center', q:'What needs attention?', sub:'Deadline '+DEADLINE_LABEL},
+  'priority-queue': {title:'AI Priority', q:'Who should we handle first?', sub:'Ranked, explainable dispatch order'},
+  'field-operations': {title:'Field Operations', q:'How should we allocate our workforce?', sub:'Agents, capacity and assignments'},
+  'operational-map': {title:'Live Map', q:'Where should agents go?', sub:'Zone network, agent routes, merchant clusters'},
+  'document-copilot': {title:'Document Copilot', q:'Can we prevent a failed visit?', sub:'Point-of-capture quality checks'},
+  'simulator': {title:'What-If Simulator', q:'What happens if capacity changes?', sub:'Change the constraints, watch the projection recompute'},
+  'merchant-intelligence': {title:'Merchant Intelligence', q:null, sub:'Full backlog · search, filter, drill into any merchant'},
+  'compliant-path': {title:'Compliant Path', q:null, sub:'Who legally never needs a field visit'},
+  'analytics': {title:'Analytics', q:'Are we going to meet the deadline?', sub:'Portfolio-level trends and performance'},
+  'alerts': {title:'Alerts', q:null, sub:'What needs attention right now'},
+};
+
+function navItemHtml(n){
+  return `<li><a href="#/${n.id}" class="nav-link ${state.route===n.id?'active':''}" data-route="${n.id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${n.icon}</svg>
+      ${n.label}
+      ${n.id==='alerts' ? `<span class="badge">${computeAlerts().filter(a=>a.level==='critical').length}</span>` : ''}
+    </a></li>`;
+}
+function renderNav(){
+  const el = document.getElementById('nav-list');
+  if(SECONDARY_ROUTE_IDS.includes(state.route)) state.moreOpen = true;
+  el.innerHTML = PRIMARY_NAV.map(navItemHtml).join('') + `
+    <li class="nav-more">
+      <button class="nav-link nav-more-btn" id="nav-more-toggle" aria-expanded="${state.moreOpen}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS.more}</svg>
+        More
+        <svg class="chevron ${state.moreOpen?'open':''}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS.chevron}</svg>
+      </button>
+      <ul class="nav-sublist" id="nav-sublist" ${state.moreOpen?'':'hidden'}>${SECONDARY_NAV.map(navItemHtml).join('')}</ul>
+    </li>`;
+  const moreBtn = document.getElementById('nav-more-toggle');
+  if(moreBtn) moreBtn.addEventListener('click', ()=>{ state.moreOpen = !state.moreOpen; renderNav(); wireNavClicks(); });
+  wireNavClicks();
+}
+function wireNavClicks(){
+  document.getElementById('nav-list').querySelectorAll('[data-route]').forEach(link=>{
+    link.addEventListener('click', (e)=>{ e.preventDefault(); navigate(link.dataset.route); closeMobileNavIfOpen(); });
+  });
+}
+function closeMobileNavIfOpen(){
+  const sb = document.getElementById('sidebar'), sc = document.getElementById('sidebar-scrim');
+  if(sb && sb.classList.contains('open')){ sb.classList.remove('open'); sc.classList.remove('open'); }
+}
+
+function renderTopbarStats(){
+  const r = currentResult();
+  const el = document.getElementById('topbar-stats');
+  if(!r){ el.innerHTML=''; return; }
+  el.innerHTML = `
+    <div class="tstat"><div class="v accent" id="tb-days">${state.daysRemaining}d</div><div class="l">To Deadline</div></div>
+    <div class="tstat tip" data-tip="Merchants projected verified or offloaded by the deadline, at current capacity."><div class="v ${r.completionPct>=90?'good':''}" id="tb-completion">${fmtPct(r.completionPct)}</div><div class="l">Projected Complete</div></div>
+    <div class="tstat tip" data-tip="High-revenue merchants (>₹2L/mo) still unverified when the projection ends."><div class="v critical" id="tb-critical">${r.criticalRemaining}</div><div class="l">Critical Backlog</div></div>
+    <div class="tstat"><div class="v" id="tb-agents">${state.agents.length}</div><div class="l">Agents Active</div></div>
+  `;
+}
+
+function navigate(route){
+  state.route = route;
+  location.hash = '#/'+route;
+  renderNav();
+  const meta = SCREEN_META[route] || SCREEN_META['command-center'];
+  document.getElementById('screen-title').textContent = meta.title;
+  document.getElementById('screen-sub').textContent = meta.sub;
+  renderTopbarStats();
+  const root = document.getElementById('screen-root');
+  root.classList.remove('fade-swap');
+  const renderFn = SCREEN_RENDERERS[route] || SCREEN_RENDERERS['command-center'];
+  root.innerHTML = renderFn();
+  void root.offsetWidth;
+  root.classList.add('fade-swap');
+  wireScreenEvents(route);
+  if(route==='operational-map') requestAnimationFrame(initMap);
+  if(route==='analytics') requestAnimationFrame(renderAnalyticsCharts);
+}
+
+/* ================================================================
+   SCREEN: COMMAND CENTER — "What needs attention?"
+   ================================================================ */
+function renderCommandCenter(){
+  ensureBaseline();
+  const r = currentResult();
+  const b = state.baselineResult;
+  const isOpt = state.mode==='optimized';
+  return `
+  <div class="screen-head">
+    <div>
+      <span class="screen-question">What needs attention?</span>
+      <h2>Regulatory Operations Overview</h2>
+      <p>500-merchant re-KYC backlog · ${state.agents.length} agents · ${state.daysRemaining} days remaining · deadline ${DEADLINE_LABEL}</p>
+    </div>
+  </div>
+
+  <div class="grid g-4" style="margin-bottom:20px;">
+    <div class="card stat-tile">
+      <div class="l">Days To Deadline</div>
+      <div class="v" id="kpi-days">${state.daysRemaining}</div>
+      <div class="d">Deadline ${DEADLINE_LABEL}</div>
+    </div>
+    <div class="card stat-tile tip" data-tip="Merchants projected verified or offloaded by the deadline, at current capacity and routing.">
+      <div class="l">Projected Completion</div>
+      <div class="v count-pulse" id="kpi-completion">${fmtPct(r.completionPct)}</div>
+      <div class="d ${isOpt?'up':''}" id="kpi-completion-d">${isOpt ? `↑ ${(r.completionPct-b.completionPct).toFixed(1)}pt vs baseline` : 'Naive FIFO dispatch, no offload'}</div>
+    </div>
+    <div class="card stat-tile tip" data-tip="High-revenue merchants (>₹2L/mo transaction volume) still unverified at deadline — highest business risk if missed.">
+      <div class="l">Critical Backlog</div>
+      <div class="v count-pulse" id="kpi-critical" style="color:var(--critical)">${r.criticalRemaining}</div>
+      <div class="d">of ${MERCHANTS.length} total merchants</div>
+    </div>
+    <div class="card stat-tile">
+      <div class="l">Active Agents</div>
+      <div class="v" id="kpi-agents">${state.agents.length}</div>
+      <div class="d">field verification workforce</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-head"><h3>What Needs Attention Now</h3><span class="hint">Top 5 by priority score</span></div>
+    <div id="cc-critical-list"></div>
+  </div>
+
+  <div class="card" style="background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent);">
+    <div class="card-pad" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:11px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px;">Recommended Action</div>
+        <div style="font-size:19px;font-weight:800;">Ready to close the gap?</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px;max-width:48ch;">Recompute zone-optimized dispatch, document-copilot capacity gains and prior-attempt handling for the remaining backlog.</div>
+      </div>
+      <button class="btn btn-accent btn-xl" id="btn-optimize" data-optimize-btn>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+        Optimize with SURGE
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+function renderCriticalList(){
+  const scored = MERCHANTS.map(m => ({m, p: computePriority(m, state.daysRemaining)}))
+    .sort((a,b)=>b.p.score-a.p.score).slice(0,5);
+  const el = document.getElementById('cc-critical-list');
+  if(!el) return;
+  el.innerHTML = scored.map(({m,p}) => `
+    <div class="priority-item" data-open-merchant="${m.id}">
+      <div class="priority-score tip" data-tip="Priority score: weighted blend of revenue at risk, deadline pressure and prior failed attempts." style="--pct:${p.score}"><span>${p.score}</span></div>
+      <div style="flex:1;min-width:0;">
+        <b style="font-size:13px;">${m.name}</b>
+        <div style="font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);">${m.id} · ${m.city}, ${m.zoneName}</div>
+      </div>
+      <span class="pill pill-critical">${fmtLakh(m.revenueMonthly/100000)}/mo</span>
+    </div>
+  `).join('');
+}
+
+/* ================================================================
+   SCREEN: MERCHANT INTELLIGENCE (secondary)
+   ================================================================ */
+function filteredMerchants(){
+  const f = state.merchantFilters;
+  return MERCHANTS.filter(m => {
+    if(f.zone!=='all' && m.zoneId!==f.zone) return false;
+    if(f.status!=='all' && m.status!==f.status) return false;
+    if(f.search && !(m.name.toLowerCase().includes(f.search.toLowerCase()) || m.id.toLowerCase().includes(f.search.toLowerCase()) || m.city.toLowerCase().includes(f.search.toLowerCase()))) return false;
+    return true;
+  });
+}
+function statusPill(status){
+  const map = {
+    pending: ['pill-neutral','Pending'],
+    scheduled: ['pill-data','Scheduled'],
+    failed_attempt: ['pill-critical','Failed Attempt'],
+    verified: ['pill-good','Verified'],
+  };
+  const [cls,label] = map[status]||map.pending;
+  return `<span class="pill ${cls}"><span class="dot"></span>${label}</span>`;
+}
+function renderMerchantIntelligence(){
+  const all = filteredMerchants();
+  const list = all.slice(0,60);
+  return `
+  <div class="card">
+    <div class="toolbar">
+      <input type="search" id="m-search" placeholder="Search merchant, ID or city…" value="${state.merchantFilters.search}">
+      <select id="m-zone"><option value="all">All Zones</option>${ZONES.map(z=>`<option value="${z.id}" ${state.merchantFilters.zone===z.id?'selected':''}>${z.name}</option>`).join('')}</select>
+      <select id="m-status"><option value="all">All Status</option><option value="pending">Pending</option><option value="scheduled">Scheduled</option><option value="failed_attempt">Failed Attempt</option></select>
+      <span class="count">${all.length} of ${MERCHANTS.length} merchants${all.length>60?' · showing first 60, refine filters to see more':''}</span>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Merchant</th><th>Zone / City</th><th>Turnover</th><th>Volume/mo</th><th class="tip" data-tip="Share of required identity/business documents already on file, quality-checked.">Doc Readiness</th><th class="tip" data-tip="0-100 explainable priority score — revenue at risk + deadline pressure + prior-attempt penalty.">Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        ${list.length ? list.map(m => {
+          const p = computePriority(m, state.daysRemaining);
+          return `<tr data-open-merchant="${m.id}" class="${state.selectedMerchantId===m.id?'selected':''}">
+            <td class="name-cell"><b>${m.name}</b><span>${m.id}</span></td>
+            <td>${m.zoneName}<br><span style="color:var(--text-faint);font-size:11px;">${m.city}</span></td>
+            <td class="mono">₹${m.turnoverLakh}L</td>
+            <td class="mono">${fmtINR(m.revenueMonthly)}</td>
+            <td><div class="bar-cell"><i style="width:${m.docReadiness*100}%;background:${m.docReadiness>=.6?'var(--good)':'var(--warn)'}"></i></div></td>
+            <td class="mono">${p.score}</td>
+            <td>${statusPill(m.status)}</td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="7"><div class="empty-state">No merchants match these filters.</div></td></tr>`}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  `;
+}
+
+function openMerchantDetail(id){
+  const m = MERCHANTS.find(x=>x.id===id);
+  if(!m) return;
+  state.selectedMerchantId = id;
+  const p = computePriority(m, state.daysRemaining);
+  const cp = evaluateCompliantPath(m);
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = `
+    <div class="dp-head">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint);">${m.id}</div>
+        <h3 style="font-size:17px;font-weight:700;margin-top:4px;">${m.name}</h3>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px;">${m.city}, ${m.zoneName}</div>
+      </div>
+      <button class="dp-close" id="dp-close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dp-body">
+      <div style="display:flex;gap:10px;margin-bottom:18px;">
+        <span class="pill pill-critical" style="flex:1;justify-content:center;padding:8px;">Priority ${p.score}/100</span>
+        <span class="pill ${cp.eligible?'pill-good':'pill-warn'}" style="flex:1;justify-content:center;padding:8px;">${cp.eligible?'Remote-Eligible':'Field Visit Required'}</span>
+      </div>
+
+      <div class="dp-row"><span class="k">Device / Acceptance</span><span class="v">${m.qrSoundbox}</span></div>
+      <div class="dp-row"><span class="k">Annual Turnover</span><span class="v">₹${m.turnoverLakh}L</span></div>
+      <div class="dp-row"><span class="k">Monthly Txn Volume</span><span class="v">${fmtINR(m.revenueMonthly)}</span></div>
+      <div class="dp-row"><span class="k">Document Readiness</span><span class="v">${(m.docReadiness*100).toFixed(0)}%</span></div>
+      <div class="dp-row"><span class="k">Prior Attempts</span><span class="v">${m.priorAttempts}</span></div>
+      <div class="dp-row"><span class="k">Last Contact</span><span class="v">${m.lastContact}</span></div>
+      <div class="dp-row"><span class="k">Current Status</span><span class="v">${m.status.replace('_',' ')}</span></div>
+
+      <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin:20px 0 10px;">Why this priority score</h4>
+      ${p.reasons.map(r=>`<div class="reason-chip">${r.label} <b>+${Math.round(r.pts)}</b></div>`).join('')}
+
+      <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin:20px 0 10px;">Compliant path evaluation</h4>
+      ${cp.rules.map(r=>`<div class="rule-row"><span class="rule-ic ${r.pass?'ok':'no'}">${r.pass?'✓':'✕'}</span>${r.label}</div>`).join('')}
+      <p style="margin-top:12px;font-size:12.5px;padding:10px 12px;background:var(--surface-2);border-radius:8px;"><b>Determined path:</b> ${cp.path}</p>
+    </div>
+  `;
+  document.getElementById('scrim').classList.add('open');
+  panel.classList.add('open');
+  document.getElementById('dp-close').onclick = closeDetail;
+  document.getElementById('scrim').onclick = closeDetail;
+}
+function closeDetail(){
+  document.getElementById('scrim').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+/* ================================================================
+   SCREEN: AI PRIORITY — "Who should we handle first?"
+   ================================================================ */
+function scoredMerchants(focusWeight){
+  return MERCHANTS.map(m => ({m, p: computePriority(m, state.daysRemaining, focusWeight)}))
+    .sort((a,b)=>b.p.score-a.p.score);
+}
+function riskTier(score){
+  if(score>=70) return {label:'High', cls:'pill-critical'};
+  if(score>=40) return {label:'Medium', cls:'pill-warn'};
+  return {label:'Low', cls:'pill-good'};
+}
+function recommendedAction(m, cp){
+  if(cp.eligible) return 'Route via remote / video-KYC — no field visit needed.';
+  if(m.priorAttempts>0) return `Re-dispatch to a senior agent in ${m.zoneName} — prior attempt failed.`;
+  if(m.docReadiness<0.5) return `Flag for Document Copilot pre-check before the ${m.zoneName} agent departs.`;
+  return `Dispatch to next available agent in ${m.zoneName}.`;
+}
+function whyBullets(m, p){
+  return p.reasons.slice(0,3).map(r=>`${r.label} (+${Math.round(r.pts)} pts)`);
+}
+function priorityCardHtml(m, p, rank){
+  const cp = evaluateCompliantPath(m);
+  const risk = riskTier(p.score);
+  return `
+  <div class="p-card" data-id="${m.id}">
+    <div class="p-top">
+      <div class="priority-rank ${rank<3?'top':''}">#${rank+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="p-name">${m.name}</div>
+        <div class="p-id">${m.id} · ${m.zoneName}</div>
+      </div>
+      <div class="priority-score tip" data-tip="Priority score: weighted blend of revenue at risk, deadline pressure and prior-attempt penalty." style="--pct:${p.score}"><span>${p.score}</span></div>
+    </div>
+    <div class="p-reason">${p.reasons[0].label}.</div>
+    <div class="p-meta">
+      <span class="pill ${risk.cls}">${risk.label} Deadline Risk</span>
+      <span class="pill pill-neutral">${fmtLakh(m.revenueMonthly/100000)}/mo</span>
+    </div>
+    <div class="p-action"><b>Recommended:</b> ${recommendedAction(m,cp)}</div>
+    <button class="p-why-btn" data-why="${m.id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      WHY THIS MERCHANT?
+    </button>
+    <div class="p-why-body" id="why-${m.id}"><ul>${whyBullets(m,p).map(b=>`<li>${b}</li>`).join('')}</ul></div>
+    <button class="btn btn-sm btn-ghost" data-open-merchant="${m.id}" style="align-self:flex-start;">View full record →</button>
+  </div>`;
+}
+function priorityListRowHtml(m, p, rank){
+  return `
+  <div class="priority-item" data-id="${m.id}" data-open-merchant="${m.id}">
+    <div class="priority-rank ${rank<3?'top':''}">#${rank+1}</div>
+    <div class="priority-score" style="--pct:${p.score}"><span>${p.score}</span></div>
+    <div style="flex:1;min-width:0;">
+      <b style="font-size:13px;">${m.name}</b>
+      <div style="font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);margin-bottom:4px;">${m.id} · ${m.zoneName}</div>
+      <div>${p.reasons.slice(0,2).map(r=>`<span class="reason-chip">${r.label}</span>`).join('')}</div>
+    </div>
+    <span class="pill ${m.status==='failed_attempt'?'pill-critical':'pill-neutral'}">${m.status.replace('_',' ')}</span>
+  </div>`;
+}
+function renderPriorityQueue(){
+  const fw = state.priorityFocus;
+  const scored = scoredMerchants(fw);
+  const top9 = scored.slice(0,9);
+  const list60 = scored.slice(0,60);
+  // seed rank-prev map on first render of this screen
+  if(!state.priorityRankPrev){
+    state.priorityRankPrev = new Map(scored.map((s,i)=>[s.m.id,i]));
+  }
+  return `
+  <div class="screen-head"><div><span class="screen-question">Who should we handle first?</span><h2>AI Priority</h2><p>Deterministic, fully explainable scoring — every ranking shows its reasons.</p></div></div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-pad focus-slider-wrap">
+      <div class="focus-slider-labels"><span class="l1">◀ Deadline Urgency</span><span class="l2">Business Impact ▶</span></div>
+      <input type="range" class="focus-slider" id="focus-slider" min="0" max="1" step="0.05" value="${fw}">
+      <div class="focus-value" id="focus-value">Blend: ${Math.round((1-fw)*100)}% urgency · ${Math.round(fw*100)}% business impact</div>
+      <p class="focus-slider-caption">Re-weights every priority score live — pull toward urgency to surface merchants at risk of missing the deadline first, or toward business impact to surface the highest-revenue merchants first.</p>
+    </div>
+  </div>
+
+  <div id="rank-toast" class="rank-toast"></div>
+
+  <div class="card-head" style="padding:0 0 12px;border:none;"><h3 style="font-size:15px;">Top Priority Merchants</h3><span class="hint">${top9.length} of ${MERCHANTS.length} · decision cards</span></div>
+  <div class="priority-cards" id="priority-cards" style="margin-bottom:22px;">
+    ${top9.map(({m,p},i)=>priorityCardHtml(m,p,i)).join('')}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Full Ranked Queue</h3><span class="hint">Top 60 of ${MERCHANTS.length} · click any row for full explanation</span></div>
+    <div id="priority-list">
+    ${list60.map(({m,p},i) => priorityListRowHtml(m,p,i)).join('')}
+    </div>
+  </div>
+  `;
+}
+function updatePriorityRanking(){
+  const root = document.getElementById('screen-root');
+  if(!root || state.route!=='priority-queue') return;
+  const fw = state.priorityFocus;
+  const scored = scoredMerchants(fw);
+  const prevRanks = state.priorityRankPrev;
+  const newRanks = new Map(scored.map((s,i)=>[s.m.id,i]));
+
+  // update slider caption
+  const valEl = document.getElementById('focus-value');
+  if(valEl) valEl.textContent = `Blend: ${Math.round((1-fw)*100)}% urgency · ${Math.round(fw*100)}% business impact`;
+
+  // cards: simple re-render (top 9 changes composition/order)
+  const cardsEl = document.getElementById('priority-cards');
+  if(cardsEl){
+    const top9 = scored.slice(0,9);
+    cardsEl.innerHTML = top9.map(({m,p},i)=>priorityCardHtml(m,p,i)).join('');
+  }
+
+  // list: FLIP reorder
+  const listEl = document.getElementById('priority-list');
+  if(listEl){
+    const first = captureFlipState(listEl, '[data-id]');
+    const list60 = scored.slice(0,60);
+    listEl.innerHTML = list60.map(({m,p},i) => priorityListRowHtml(m,p,i)).join('');
+    playFlip(listEl, '[data-id]', first);
+  }
+
+  // mover toast: biggest rank change among top 60
+  let biggest = null;
+  newRanks.forEach((rank,id)=>{
+    if(rank>59) return;
+    const prev = prevRanks.get(id);
+    if(prev===undefined) return;
+    const delta = prev - rank;
+    if(Math.abs(delta) >= 6 && (!biggest || Math.abs(delta) > Math.abs(biggest.delta))){
+      biggest = {id, prev, rank, delta};
+    }
+  });
+  const toast = document.getElementById('rank-toast');
+  if(toast){
+    if(biggest){
+      const m = MERCHANTS.find(x=>x.id===biggest.id);
+      const dir = biggest.delta>0 ? 'up' : 'down';
+      const reason = fw>0.5 ? 'business impact weighted higher' : 'deadline urgency weighted higher';
+      toast.innerHTML = `◆ <b>${m.name}</b> moved from #${biggest.prev+1} → #${biggest.rank+1} — ${reason}`;
+      toast.classList.add('show');
+      clearTimeout(toast._hideTimer);
+      toast._hideTimer = setTimeout(()=>toast.classList.remove('show'), 3200);
+    } else {
+      toast.classList.remove('show');
+    }
+  }
+
+  state.priorityRankPrev = newRanks;
+  wirePriorityWhyButtons();
+  wireOpenMerchantLinks();
+}
+function wirePriorityWhyButtons(){
+  document.querySelectorAll('[data-why]').forEach(btn=>{
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.why;
+      const body = document.getElementById('why-'+id);
+      const open = body.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    };
+  });
+}
+function wireOpenMerchantLinks(){
+  document.querySelectorAll('[data-open-merchant]').forEach(el=>{
+    el.onclick = (e) => { if(e.target.closest('[data-why]')) return; openMerchantDetail(el.dataset.openMerchant); };
+  });
+}
+
+/* ================================================================
+   SCREEN: FIELD OPERATIONS — "How should we allocate our workforce?"
+   ================================================================ */
+function routeEfficiencyLabel(r){
+  if(!r) return '—';
+  return r.optimizedRouting ? '+13%' : 'Baseline';
+}
+function renderFieldOperations(){
+  ensureBaseline();
+  buildAgentWorkloads();
+  const r = currentResult();
+  const totalCap = state.agents.reduce((s,a)=>s+a.capacity,0);
+  const totalAssigned = state.agents.reduce((s,a)=>s+a.assigned,0);
+  const avgUtil = totalCap? Math.round(totalAssigned/totalCap*100):0;
+  const hasPlan = !!state.optimizedResult;
+  return `
+  <div class="screen-head"><div><span class="screen-question">How should we allocate our workforce?</span><h2>Field Operations</h2><p>Who's available, how much capacity, who's assigned, what should change.</p></div>
+    <button class="btn btn-accent" id="btn-generate-plan" data-optimize-btn>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+      GENERATE OPTIMAL PLAN
+    </button>
+  </div>
+
+  <div class="grid g-4" style="margin-bottom:18px;">
+    <div class="card stat-tile tip" data-tip="Projected share of the backlog verified or offloaded by the deadline."><div class="l">Completion</div><div class="v" id="fo-completion">${fmtPct(r.completionPct)}</div></div>
+    <div class="card stat-tile tip" data-tip="Estimated reduction in cross-zone travel time from zone-clustered dispatch vs naive FIFO."><div class="l">Route Efficiency</div><div class="v" id="fo-travel">${routeEfficiencyLabel(r)}</div></div>
+    <div class="card stat-tile tip" data-tip="Assigned visits as a share of total daily field capacity — over 100% means an agent is over-booked."><div class="l">Utilization</div><div class="v" id="fo-util">${avgUtil}%</div></div>
+    <div class="card stat-tile"><div class="l">Critical Backlog</div><div class="v" id="fo-critical" style="color:var(--critical)">${r.criticalRemaining}</div></div>
+  </div>
+
+  <div class="card-head" style="padding:0 0 12px;border:none;"><h3 style="font-size:15px;">Who's Available</h3></div>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;" id="agent-grid">
+    ${state.agents.map(a => `
+      <div class="agent-card ${state.selectedAgentId===a.id?'selected':''}" data-open-agent="${a.id}">
+        <div class="top">
+          <div class="agent-avatar">${a.name.split(' ').map(w=>w[0]).join('')}</div>
+          <span class="pill ${a.status==='active'?'pill-good':'pill-data'}">${a.status}</span>
+        </div>
+        <h4>${a.name}</h4>
+        <div class="zone">${a.zoneName} · ${a.id}</div>
+        <div class="util-track"><i class="${a.utilPct>100?'over':''}" style="width:${Math.min(a.utilPct,100)}%"></i></div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-faint);margin-top:6px;">
+          <span>${a.assigned}/${a.capacity} visits</span><span>${a.utilPct}% util.</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+  <div id="agent-workload-panel" style="margin-bottom:20px;"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>What Should Change</h3><span class="hint">${hasPlan?'Baseline → Optimized plan':'Generate a plan to see workforce changes'}</span></div>
+    <div id="fo-deltas">${hasPlan ? fieldOpsDeltasHtml() : `<div class="empty-state">Click <b>GENERATE OPTIMAL PLAN</b> to see per-agent before → after changes.</div>`}</div>
+  </div>
+  `;
+}
+function fieldOpsDeltasHtml(){
+  const before = computeAgentWorkloads(state.baselineResult);
+  const after = computeAgentWorkloads(state.optimizedResult);
+  return before.map((b,i) => {
+    const a = after[i];
+    const delta = a.assigned - b.assigned;
+    const cls = delta>0?'pos':delta<0?'neg':'zero';
+    const sign = delta>0?'+':'';
+    return `
+    <div class="delta-row">
+      <div class="agent">${a.name.toUpperCase()} <span style="color:var(--text-faint);font-weight:400;">· ${a.id}</span></div>
+      <div class="nums">Before: ${b.assigned} merchants <span class="arrow">→</span> After: <span class="after-n">${a.assigned} merchants</span></div>
+      <span class="delta-badge ${cls}">${sign}${delta}</span>
+    </div>`;
+  }).join('');
+}
+function renderAgentWorkload(agentId){
+  const a = state.agents.find(x=>x.id===agentId);
+  const el = document.getElementById('agent-workload-panel');
+  if(!a || !el) return;
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-head"><h3>${a.name}'s Route Today</h3><span class="hint">${a.zoneName} · ${a.workload.length} stops</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Merchant</th><th>City</th><th>Priority</th><th>Status</th></tr></thead>
+        <tbody>
+        ${a.workload.map((m,i)=>{const p=computePriority(m,state.daysRemaining);return `
+          <tr data-open-merchant="${m.id}">
+            <td class="mono">${i+1}</td>
+            <td class="name-cell"><b>${m.name}</b><span>${m.id}</span></td>
+            <td>${m.city}</td>
+            <td class="mono">${p.score}</td>
+            <td>${statusPill(m.status)}</td>
+          </tr>`;}).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-faint);padding:30px;">No merchants left in this zone — fully cleared.</td></tr>'}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+  el.querySelectorAll('[data-open-merchant]').forEach(x=>x.addEventListener('click',()=>openMerchantDetail(x.dataset.openMerchant)));
+}
+
+/* ================================================================
+   SCREEN: LIVE MAP — "Where should agents go?"
+   ================================================================ */
+function renderOperationalMap(){
+  return `
+  <div class="screen-head"><div><span class="screen-question">Where should agents go?</span><h2>Live Map</h2><p>Zone network, agent routes, and merchant clusters — click any node for detail.</p></div></div>
+  <div class="card">
+    <div class="card-head"><h3>Zone Operations Network</h3><span class="hint">Click a zone hub, agent or merchant for detail</span></div>
+    <div class="card-pad">
+      <div class="map-wrap">
+        <svg id="opmap" viewBox="0 0 1000 620"></svg>
+        <div class="map-legend">
+          <span><i style="background:var(--data)"></i>Zone Hub</span>
+          <span><i style="background:var(--accent)"></i>Field Agent</span>
+          <span><i style="background:var(--accent);opacity:.5"></i>Assigned Route</span>
+          <span><i style="background:var(--critical)"></i>Critical Merchant Cluster</span>
+          <span><i style="background:var(--text-faint)"></i>Other Merchant</span>
+        </div>
+        <div class="map-tip" id="map-tip"></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid g-3" style="margin-top:16px;" id="zone-stat-cards"></div>
+  `;
+}
+function merchantXY(m, zonePos, W, H){
+  const zp = zonePos[m.zoneId]; if(!zp) return {x:0,y:0};
+  return {
+    x: zp.x + Math.cos(m.angle)*m.radius*W*0.9,
+    y: zp.y + Math.sin(m.angle)*m.radius*H*0.9,
+  };
+}
+function initMap(){
+  const svg = document.getElementById('opmap');
+  if(!svg) return;
+  buildAgentWorkloads();
+  const NS = 'http://www.w3.org/2000/svg';
+  svg.innerHTML='';
+  const W=1000,H=620;
+  const zonePos = {};
+  ZONES.forEach(z => zonePos[z.id] = {x: z.cx*W, y: z.cy*H});
+  window.__surgeMapZonePos = zonePos; window.__surgeMapW = W; window.__surgeMapH = H;
+
+  const routesGroup = document.createElementNS(NS,'g'); routesGroup.setAttribute('id','routes-group');
+  svg.appendChild(routesGroup);
+
+  // connective lines between adjacent zones (visual network fabric)
+  for(let i=0;i<ZONES.length;i++){
+    const a = zonePos[ZONES[i].id], b = zonePos[ZONES[(i+1)%ZONES.length].id];
+    const line = document.createElementNS(NS,'line');
+    line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+    line.setAttribute('stroke','var(--border)'); line.setAttribute('stroke-width','1.5'); line.setAttribute('stroke-dasharray','4 5');
+    svg.appendChild(line);
+  }
+
+  // merchant satellite dots clustered around each zone hub
+  MERCHANTS.forEach(m => {
+    const {x,y} = merchantXY(m, zonePos, W, H);
+    const c = document.createElementNS(NS,'circle');
+    const critical = m.revenueMonthly>200000 && m.status!=='verified';
+    c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r', critical?3.2:2);
+    c.setAttribute('fill', critical ? 'var(--critical)' : 'var(--text-faint)');
+    c.setAttribute('opacity', critical?0.9:0.45);
+    c.setAttribute('data-merchant', m.id);
+    c.style.cursor='pointer';
+    c.addEventListener('click', ()=>openMerchantDetail(m.id));
+    c.addEventListener('mousemove', (e)=>showMapTip(e, `${m.name}\n${m.id} · ${fmtINR(m.revenueMonthly)}/mo`));
+    c.addEventListener('mouseleave', hideMapTip);
+    svg.appendChild(c);
+  });
+
+  // zone hubs (radius 26, ambient pulse ring)
+  ZONES.forEach(z => {
+    const zp = zonePos[z.id];
+    const count = MERCHANTS.filter(m=>m.zoneId===z.id).length;
+    const pulse = document.createElementNS(NS,'circle');
+    pulse.setAttribute('cx',zp.x);pulse.setAttribute('cy',zp.y);pulse.setAttribute('r',26);
+    pulse.setAttribute('fill','none');pulse.setAttribute('stroke','var(--data)');pulse.setAttribute('stroke-width','1.5');
+    pulse.setAttribute('class','hub-pulse'); pulse.style.transformOrigin=`${zp.x}px ${zp.y}px`;
+    pulse.style.animation = `hubPulse 2.6s ease-out infinite`; pulse.style.animationDelay = (ZONES.indexOf(z)*0.35)+'s';
+    svg.appendChild(pulse);
+    const ring = document.createElementNS(NS,'circle');
+    ring.setAttribute('cx',zp.x);ring.setAttribute('cy',zp.y);ring.setAttribute('r',26);
+    ring.setAttribute('fill','var(--data-soft)'); ring.setAttribute('stroke','var(--data)'); ring.setAttribute('stroke-width','2');
+    svg.appendChild(ring);
+    const label = document.createElementNS(NS,'text');
+    label.setAttribute('x',zp.x);label.setAttribute('y',zp.y+40);
+    label.setAttribute('text-anchor','middle'); label.setAttribute('fill','var(--text)'); label.setAttribute('font-size','13'); label.setAttribute('font-family','var(--font-mono)'); label.setAttribute('font-weight','600');
+    label.textContent = z.name;
+    svg.appendChild(label);
+    const sub = document.createElementNS(NS,'text');
+    sub.setAttribute('x',zp.x);sub.setAttribute('y',zp.y+56);
+    sub.setAttribute('text-anchor','middle'); sub.setAttribute('fill','var(--text-faint)'); sub.setAttribute('font-size','11'); sub.setAttribute('font-family','var(--font-mono)');
+    sub.textContent = count+' merchants';
+    svg.appendChild(sub);
+    ring.style.cursor='pointer';
+    ring.addEventListener('mousemove',(e)=>showMapTip(e,`${z.name}\n${count} merchants in zone`));
+    ring.addEventListener('mouseleave', hideMapTip);
+  });
+
+  drawMapRoutes(false);
+
+  // agent dots, gently animated orbiting their zone hub (radius 19, inside 26px hub ring)
+  const agentEls = state.agents.map((a,i) => {
+    const zp = zonePos[a.zoneId]; if(!zp) return null;
+    const g = document.createElementNS(NS,'g');
+    g.style.cursor='pointer';
+    const dot = document.createElementNS(NS,'circle');
+    dot.setAttribute('r',7); dot.setAttribute('fill','var(--accent)'); dot.setAttribute('stroke','#fff'); dot.setAttribute('stroke-width','1.5');
+    g.appendChild(dot);
+    svg.appendChild(g);
+    g.addEventListener('click', ()=>{ navigate('field-operations'); setTimeout(()=>openAgentPanel(a.id),50); });
+    g.addEventListener('mousemove',(e)=>showMapTip(e,`${a.name}\n${a.assigned}/${a.capacity} visits today`));
+    g.addEventListener('mouseleave', hideMapTip);
+    return {g, zp, phase: i*0.7, speedMul: 0.6+rng()*0.6};
+  }).filter(Boolean);
+
+  window.__surgeMapRaf && cancelAnimationFrame(window.__surgeMapRaf);
+  if(prefersReducedMotion()){
+    agentEls.forEach(ae => ae.g.setAttribute('transform', `translate(${ae.zp.x+19},${ae.zp.y})`));
+  } else {
+    const start = performance.now();
+    function tick(now){
+      const t = (now-start)/1000;
+      agentEls.forEach(ae => {
+        const ang = t*0.4*ae.speedMul + ae.phase;
+        const x = ae.zp.x + Math.cos(ang)*19;
+        const y = ae.zp.y + Math.sin(ang)*19;
+        ae.g.setAttribute('transform', `translate(${x},${y})`);
+      });
+      window.__surgeMapRaf = requestAnimationFrame(tick);
+    }
+    window.__surgeMapRaf = requestAnimationFrame(tick);
+  }
+
+  // zone stat cards below map
+  const zc = document.getElementById('zone-stat-cards');
+  if(zc){
+    zc.innerHTML = ZONES.map(z=>{
+      const zm = MERCHANTS.filter(m=>m.zoneId===z.id);
+      const crit = zm.filter(m=>m.revenueMonthly>200000).length;
+      const avgP = Math.round(zm.reduce((s,m)=>s+computePriority(m,state.daysRemaining).score,0)/zm.length);
+      return `<div class="card stat-tile"><div class="l">${z.name}</div><div class="v">${zm.length}</div><div class="d">${crit} critical · avg priority ${avgP}</div></div>`;
+    }).join('');
+  }
+}
+/* Draws each agent's route (hub → top 3 assigned merchants). animate=true
+   fades the old paths out, then draws the new ones in with a stroke
+   dashoffset animation — used after Optimize recalculates assignments. */
+function drawMapRoutes(animate){
+  const svg = document.getElementById('opmap');
+  const group = document.getElementById('routes-group');
+  if(!svg || !group) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const zonePos = window.__surgeMapZonePos, W = window.__surgeMapW, H = window.__surgeMapH;
+  const workloads = computeAgentWorkloads(currentResult());
+
+  function paintNew(){
+    group.innerHTML = '';
+    workloads.forEach(a => {
+      const zp = zonePos[a.zoneId]; if(!zp) return;
+      const stops = a.workload.slice(0,3).map(m => merchantXY(m, zonePos, W, H));
+      if(!stops.length) return;
+      const d = `M ${zp.x} ${zp.y} ` + stops.map(s=>`L ${s.x} ${s.y}`).join(' ');
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','var(--accent)');
+      path.setAttribute('stroke-width','1.4');
+      path.setAttribute('stroke-linecap','round');
+      path.setAttribute('opacity','0.55');
+      path.setAttribute('class','agent-route');
+      group.appendChild(path);
+      if(!prefersReducedMotion()){
+        try{
+          const len = path.getTotalLength();
+          path.style.strokeDasharray = len;
+          path.style.strokeDashoffset = len;
+          requestAnimationFrame(()=>{
+            path.style.transition = 'stroke-dashoffset .6s cubic-bezier(.16,.8,.24,1)';
+            path.style.strokeDashoffset = 0;
+          });
+        }catch(e){}
+      }
+    });
+  }
+
+  if(animate && group.children.length && !prefersReducedMotion()){
+    Array.from(group.children).forEach(p => { p.style.transition='opacity .25s ease'; p.style.opacity='0'; });
+    setTimeout(paintNew, 260);
+  } else {
+    paintNew();
+  }
+}
+function showMapTip(e,text){
+  const tip = document.getElementById('map-tip'); if(!tip) return;
+  const wrap = document.querySelector('.map-wrap').getBoundingClientRect();
+  tip.style.left = (e.clientX-wrap.left+14)+'px';
+  tip.style.top = (e.clientY-wrap.top+10)+'px';
+  tip.innerHTML = text.split('\n').map(l=>`<div>${l}</div>`).join('');
+  tip.classList.add('show');
+}
+function hideMapTip(){ const tip=document.getElementById('map-tip'); if(tip) tip.classList.remove('show'); }
+
+/* ================================================================
+   SCREEN: DOCUMENT COPILOT — "Can we prevent a failed visit?"
+   (real client-side computer-vision checks)
+   ================================================================ */
+function renderDocumentCopilot(){
+  return `
+  <div class="screen-head"><div><span class="screen-question">Can we prevent a failed visit?</span><h2>Document Copilot</h2><p>Upload → SURGE analyzes → quality score → problems found → recommendation.</p></div></div>
+  <div class="card">
+    <div class="card-head"><h3>Upload Captured Document</h3><span class="hint">Real image analysis runs in your browser</span></div>
+    <div class="card-pad">
+      <div class="dropzone" id="dropzone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+        <div style="font-weight:600;font-size:13.5px;">Drop a photo, or click to select</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-top:4px;">PAN, business registration or storefront photo · JPG/PNG</div>
+        <input type="file" id="doc-file" accept="image/*" style="display:none;">
+      </div>
+      <div class="doc-analysis" id="doc-result"></div>
+
+      <div class="match-collapse">
+        <button class="match-collapse-toggle" id="match-toggle">
+          <span>Identity Field Match Tool (fuzzy name matching)</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="match-collapse-body" id="match-body" hidden>
+          <label style="font-size:12px;font-weight:600;">Name on PAN</label>
+          <input type="text" id="match-a" placeholder="e.g. RAVI TEJA KUMAR" style="width:100%;margin:6px 0 14px;padding:9px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:13px;">
+          <label style="font-size:12px;font-weight:600;">Name on Business Registration</label>
+          <input type="text" id="match-b" placeholder="e.g. RAVI TEJA K." style="width:100%;margin:6px 0 14px;padding:9px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:13px;">
+          <button class="btn btn-accent" id="btn-match" style="width:100%;justify-content:center;">Run Match</button>
+          <div id="match-result" style="margin-top:16px;"></div>
+          <p style="font-size:11.5px;color:var(--text-faint);margin-top:16px;line-height:1.6;">Demo mode: paste two extracted text fields to see the same Levenshtein-distance fuzzy-matching logic a production OCR pipeline would feed into.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+function analyzeImageFile(file){
+  const resultEl = document.getElementById('doc-result');
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = (e) => { img.src = e.target.result; };
+  reader.readAsDataURL(file);
+  img.onload = () => {
+    resultEl.innerHTML = `
+      <div class="doc-preview"><img src="${img.src}" class="captured-img"><div class="scan-bar"></div></div>
+      <div class="analyzing-line"><span class="spin"></span>SURGE analyzing capture quality…</div>
+    `;
+    const canvas = document.createElement('canvas');
+    const maxDim = 300;
+    const scale = Math.min(1, maxDim/Math.max(img.width,img.height));
+    canvas.width = Math.max(1,Math.round(img.width*scale));
+    canvas.height = Math.max(1,Math.round(img.height*scale));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
+    // grayscale + brightness
+    const w=canvas.width,h=canvas.height;
+    const gray = new Float32Array(w*h);
+    let sum=0;
+    for(let i=0;i<w*h;i++){
+      const r=data[i*4], g=data[i*4+1], b=data[i*4+2];
+      const v = 0.299*r+0.587*g+0.114*b;
+      gray[i]=v; sum+=v;
+    }
+    const brightness = sum/(w*h);
+
+    // laplacian variance (sharpness) — real edge-based blur detection
+    let lapSum=0, lapSumSq=0, n=0;
+    for(let y=1;y<h-1;y++){
+      for(let x=1;x<w-1;x++){
+        const idx=y*w+x;
+        const lap = gray[idx-1]+gray[idx+1]+gray[idx-w]+gray[idx+w]-4*gray[idx];
+        lapSum+=lap; lapSumSq+=lap*lap; n++;
+      }
+    }
+    const mean = lapSum/Math.max(n,1);
+    const variance = lapSumSq/Math.max(n,1) - mean*mean;
+
+    const sharpOk = variance > 220;
+    const brightOk = brightness > 55 && brightness < 220;
+    const resOk = img.width>=480 && img.height>=480;
+
+    const checks = [
+      {label:'Sharpness', detail:`Edge-variance score ${variance.toFixed(0)} (need ≥220)`, pass:sharpOk, fail_msg:'Image is blurry — ask merchant to retake in better light or hold steady.'},
+      {label:'Exposure', detail:`Average brightness ${brightness.toFixed(0)}/255`, pass:brightOk, fail_msg: brightness<=55 ? 'Image too dark — retake with more light.' : 'Image overexposed / glare detected — retake avoiding direct light.'},
+      {label:'Resolution', detail:`${img.width}×${img.height}px (need ≥480×480)`, pass:resOk, fail_msg:'Resolution too low for legible text — recapture at higher quality.'},
+    ];
+    const allPass = checks.every(c=>c.pass);
+    const qualityScore = Math.round(checks.filter(c=>c.pass).length/checks.length*100);
+
+    setTimeout(()=>{
+      resultEl.innerHTML = `
+        <div class="doc-preview"><img src="${img.src}" class="captured-img"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0 6px;">
+          <div class="priority-score" style="--pct:${qualityScore}"><span>${qualityScore}</span></div>
+          <div><b style="font-size:13.5px;">Quality Score</b><div style="font-size:11.5px;color:var(--text-faint);">${allPass?'Capture accepted':'Recapture recommended'}</div></div>
+        </div>
+        <div class="pill ${allPass?'pill-good':'pill-warn'}" style="margin-bottom:6px;">${allPass?'✓ Capture Accepted':'⚠ Recapture Recommended'}</div>
+        ${checks.map(c=>`
+          <div class="doc-check">
+            <div class="check-ic ${c.pass?'pass':'fail'}">${c.pass?'✓':'!'}</div>
+            <div><b>${c.label}</b><p>${c.detail}${!c.pass?' — '+c.fail_msg:''}</p></div>
+          </div>
+        `).join('')}
+        <p style="font-size:11px;color:var(--text-faint);margin-top:10px;">Real client-side analysis (Laplacian edge-variance + luminance histogram) — computed from the pixels of the image you just uploaded, not a canned result.</p>
+      `;
+    }, prefersReducedMotion() ? 0 : 700);
+  };
+}
+function runNameMatch(){
+  const a = document.getElementById('match-a').value;
+  const b = document.getElementById('match-b').value;
+  const el = document.getElementById('match-result');
+  if(!a || !b){ el.innerHTML = `<p style="font-size:12.5px;color:var(--text-faint);">Enter both fields to compare.</p>`; return; }
+  const sim = nameSimilarity(a,b);
+  const pct = Math.round(sim*100);
+  const level = pct>=85 ? 'good' : pct>=60 ? 'warn' : 'critical';
+  el.innerHTML = `
+    <div class="pill pill-${level}" style="margin-bottom:8px;">${pct}% match</div>
+    <div class="util-track" style="height:8px;"><i style="width:${pct}%;background:var(--${level==='good'?'good':level==='warn'?'warn':'critical'})"></i></div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:10px;">${pct>=85?'Names align — no manual review needed.':pct>=60?'Partial match — likely a shortened/abbreviated name, flag for a quick human glance.':'Low similarity — escalate for manual identity review before verification proceeds.'}</p>
+  `;
+}
+
+/* ================================================================
+   SCREEN: COMPLIANT PATH (secondary)
+   ================================================================ */
+function renderCompliantPath(){
+  const evals = MERCHANTS.map(m => ({m, cp: evaluateCompliantPath(m)}));
+  const eligible = evals.filter(e=>e.cp.eligible);
+  const notEligible = evals.filter(e=>!e.cp.eligible);
+  return `
+  <div class="grid g-3" style="margin-bottom:16px;">
+    <div class="card stat-tile tip" data-tip="RBI PA-PG light-path eligible: ≤₹40L turnover and ≥60% document quality — never enters the field queue."><div class="l">Remote-Eligible</div><div class="v" style="color:var(--good)">${eligible.length}</div><div class="d">Never enters the field queue</div></div>
+    <div class="card stat-tile"><div class="l">Field Visit Required</div><div class="v" style="color:var(--critical)">${notEligible.length}</div><div class="d">Turnover or documentation exceeds light-path bar</div></div>
+    <div class="card stat-tile"><div class="l">Field Load Reduction</div><div class="v">${Math.round(eligible.length/MERCHANTS.length*100)}%</div><div class="d">Of total backlog offloaded from field agents</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>Eligibility Rule Engine</h3><span class="hint">₹40L turnover threshold · 60% document-quality bar — mirrors RBI PA-PG light-path criteria</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Merchant</th><th>Turnover</th><th>Docs</th><th>Determined Path</th></tr></thead>
+      <tbody>
+        ${evals.slice(0,60).map(({m,cp})=>`
+          <tr data-open-merchant="${m.id}">
+            <td class="name-cell"><b>${m.name}</b><span>${m.id}</span></td>
+            <td class="mono">₹${m.turnoverLakh}L</td>
+            <td class="mono">${(m.docReadiness*100).toFixed(0)}%</td>
+            <td><span class="pill ${cp.eligible?'pill-good':'pill-warn'}">${cp.eligible?'Remote / Video-KYC':'In-Person Required'}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table></div>
+  </div>
+  `;
+}
+
+/* ================================================================
+   SCREEN: WHAT-IF SIMULATOR — "What happens if capacity changes?"
+   ================================================================ */
+function deadlineStatus(pct){
+  if(pct>=95) return {label:'Met', cls:'pill-good'};
+  if(pct>=70) return {label:'At Risk', cls:'pill-warn'};
+  return {label:'Missed', cls:'pill-critical'};
+}
+function renderSimulator(){
+  const sp = state.simParams;
+  return `
+  <div class="screen-head"><div><span class="screen-question">What happens if capacity changes?</span><h2>What-If Simulator</h2><p>Change agents, days or repeat-visit rate — the projection recomputes live.</p></div></div>
+  <div class="grid g-2">
+    <div class="card">
+      <div class="card-head"><h3>Scenario Controls</h3></div>
+      <div class="card-pad sim-controls">
+        <div class="sim-field">
+          <label>Field Agents <span class="v" id="lbl-agents">${sp.agentCount}</span></label>
+          <input type="range" id="sl-agents" min="2" max="20" step="1" value="${sp.agentCount}">
+        </div>
+        <div class="sim-field">
+          <label>Days Remaining <span class="v" id="lbl-days">${sp.days}</span></label>
+          <input type="range" id="sl-days" min="1" max="15" step="1" value="${sp.days}">
+        </div>
+        <div class="sim-field">
+          <label class="tip" data-tip="Share of merchants who no-show or need a repeat visit — reduces effective per-visit success probability.">Repeat Visit Rate <span class="v" id="lbl-repeat">${sp.repeatVisitRate}%</span></label>
+          <input type="range" id="sl-repeat" min="0" max="30" step="1" value="${sp.repeatVisitRate}">
+        </div>
+        <div>
+          <div class="toggle-row">
+            <div class="t-label"><b>Zone-Optimized Routing</b><span>Cluster dispatch by zone instead of naive FIFO</span></div>
+            <div class="switch ${sp.optimizedRouting?'on':''}" id="tg-routing"><i></i></div>
+          </div>
+          <div class="toggle-row">
+            <div class="t-label"><b>Document Copilot</b><span>Catch bad captures before the agent leaves</span></div>
+            <div class="switch ${sp.docCopilot?'on':''}" id="tg-copilot"><i></i></div>
+          </div>
+          <div class="toggle-row">
+            <div class="t-label"><b>Compliant-Path Offload</b><span>Route eligible merchants to remote/video-KYC</span></div>
+            <div class="switch ${sp.compliantOffload?'on':''}" id="tg-offload"><i></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Projected Outcome</h3></div>
+      <div class="card-pad">
+        <div class="grid g-2" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-tile tip" data-tip="Merchants projected verified or offloaded by the deadline under these settings." style="padding:0;"><div class="l">Completion</div><div class="v" id="sim-completion">—</div></div>
+          <div class="stat-tile" style="padding:0;"><div class="l">Critical Backlog</div><div class="v" id="sim-critical" style="color:var(--critical)">—</div></div>
+          <div class="stat-tile tip" data-tip="Smallest field headcount, under these settings, projected to reach ~95% completion." style="padding:0;margin-top:18px;"><div class="l">Required Agents</div><div class="v" id="sim-required">—</div></div>
+          <div class="stat-tile" style="padding:0;margin-top:18px;"><div class="l">Deadline Status</div><div id="sim-status" style="margin-top:8px;">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+function runSimAndUpdate(){
+  const sp = state.simParams;
+  const prev = state.simResult;
+  const result = runSimulation({agentCount:sp.agentCount, days:sp.days, optimizedRouting:sp.optimizedRouting, docCopilot:sp.docCopilot, compliantOffload:sp.compliantOffload, repeatVisitRate:sp.repeatVisitRate});
+  const required = computeRequiredAgents({days:sp.days, optimizedRouting:sp.optimizedRouting, docCopilot:sp.docCopilot, compliantOffload:sp.compliantOffload, repeatVisitRate:sp.repeatVisitRate});
+  state.simResult = result;
+
+  const compEl = document.getElementById('sim-completion');
+  const critEl = document.getElementById('sim-critical');
+  const reqEl = document.getElementById('sim-required');
+  const statusEl = document.getElementById('sim-status');
+
+  animateNumber(compEl, prev?prev.completionPct:0, result.completionPct, {format:v=>fmtPct(v)});
+  animateNumber(critEl, prev?prev.criticalRemaining:0, result.criticalRemaining, {format:v=>Math.round(v)});
+  if(reqEl) reqEl.textContent = required;
+  if(statusEl){
+    const ds = deadlineStatus(result.completionPct);
+    crossFade(statusEl, `<span class="pill ${ds.cls}" style="font-size:13px;padding:6px 12px;">${ds.label}</span>`);
+  }
+}
+
+/* ================================================================
+   NATIVE SVG CHARTS (dependency-free — no Chart.js, no CDN, works
+   fully offline. Uses the app's CSS custom-property color tokens so
+   charts respect light/dark theme automatically.)
+   ================================================================ */
+function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#c5601f'; }
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs){
+  const el = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+/* svgLineChart(container, series, opts) — series: [{label,color,data:[{x,y}]}] */
+function svgLineChart(container, series, opts={}){
+  if(!container) return;
+  const W = 560, H = 220, pad = {t:14,r:14,b:26,l:34};
+  const allY = series.flatMap(s=>s.data.map(d=>d.y));
+  const maxY = opts.maxY!==undefined ? opts.maxY : Math.max(1, ...allY) * 1.12;
+  const minY = 0;
+  const xs = series[0] ? series[0].data.map(d=>d.x) : [];
+  const n = xs.length || 1;
+  const xPos = (i) => pad.l + (i/(n-1||1)) * (W-pad.l-pad.r);
+  const yPos = (v) => H-pad.b - ((v-minY)/(maxY-minY||1)) * (H-pad.t-pad.b);
+
+  const svg = svgEl('svg', {viewBox:`0 0 ${W} ${H}`, width:'100%', height:'100%', preserveAspectRatio:'xMidYMid meet'});
+  svg.style.display='block';
+  // gridlines + y labels
+  const gridColor = getCss('--border'), textColor = getCss('--text-faint');
+  for(let g=0; g<=4; g++){
+    const v = maxY*g/4;
+    const y = yPos(v);
+    svg.appendChild(svgEl('line', {x1:pad.l, x2:W-pad.r, y1:y, y2:y, stroke:gridColor, 'stroke-width':1}));
+    const t = svgEl('text', {x:4, y:y+3, fill:textColor, 'font-size':9, 'font-family':'IBM Plex Mono, monospace'});
+    t.textContent = Math.round(v) + (opts.suffix||'');
+    svg.appendChild(t);
+  }
+  // x labels (sparse)
+  xs.forEach((x,i) => {
+    if(n>8 && i%Math.ceil(n/6)!==0 && i!==n-1) return;
+    const t = svgEl('text', {x:xPos(i), y:H-6, fill:textColor, 'font-size':9, 'font-family':'IBM Plex Mono, monospace', 'text-anchor':'middle'});
+    t.textContent = x;
+    svg.appendChild(t);
+  });
+  // series
+  series.forEach(s => {
+    const pts = s.data.map((d,i)=>`${xPos(i)},${yPos(d.y)}`).join(' ');
+    if(s.fill){
+      const areaPts = `${xPos(0)},${yPos(0)} ${pts} ${xPos(s.data.length-1)},${yPos(0)}`;
+      svg.appendChild(svgEl('polygon', {points:areaPts, fill:s.color, opacity:0.14}));
+    }
+    const poly = svgEl('polyline', {points:pts, fill:'none', stroke:s.color, 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+    if(s.dashed) poly.setAttribute('stroke-dasharray','5 4');
+    svg.appendChild(poly);
+    s.data.forEach((d,i) => {
+      svg.appendChild(svgEl('circle', {cx:xPos(i), cy:yPos(d.y), r:2.4, fill:s.color}));
+    });
+  });
+  container.innerHTML = '';
+  container.appendChild(svg);
+  if(series.length>1 && opts.legend!==false){
+    const leg = document.createElement('div');
+    leg.style.cssText = 'display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;';
+    leg.innerHTML = series.map(s=>`<span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);font-family:var(--font-mono);"><span style="width:9px;height:9px;border-radius:50%;background:${s.color};display:inline-block;"></span>${s.label}</span>`).join('');
+    container.appendChild(leg);
+  }
+}
+/* svgBarChart(container, data, opts) — data: [{label,value,color}] */
+function svgBarChart(container, data, opts={}){
+  if(!container) return;
+  const horizontal = !!opts.horizontal;
+  const W = 560, H = 220, pad = horizontal ? {t:8,r:34,b:8,l:96} : {t:14,r:10,b:34,l:30};
+  const maxV = opts.maxV !== undefined ? opts.maxV : Math.max(1, ...data.map(d=>d.value)) * 1.15;
+  const textColor = getCss('--text-faint'), gridColor = getCss('--border');
+  const svg = svgEl('svg', {viewBox:`0 0 ${W} ${H}`, width:'100%', height:'100%', preserveAspectRatio:'xMidYMid meet'});
+  svg.style.display='block';
+  const n = data.length || 1;
+  if(horizontal){
+    const bh = (H-pad.t-pad.b)/n * 0.62;
+    const gap = (H-pad.t-pad.b)/n;
+    data.forEach((d,i)=>{
+      const y = pad.t + i*gap + (gap-bh)/2;
+      const w = (d.value/maxV) * (W-pad.l-pad.r);
+      svg.appendChild(svgEl('text', {x:pad.l-8, y:y+bh/2+3, fill:textColor, 'font-size':10, 'text-anchor':'end', 'font-family':'Inter,sans-serif'})).textContent = d.label;
+      const bar = svgEl('rect', {x:pad.l, y, width:0, height:bh, rx:3, fill:d.color||getCss('--data')});
+      svg.appendChild(bar);
+      requestAnimationFrame(()=>{ bar.style.transition='width .55s cubic-bezier(.16,.8,.24,1)'; bar.setAttribute('width', Math.max(1,w)); });
+      const vt = svgEl('text', {x:pad.l+w+6, y:y+bh/2+3, fill:'var(--text)', 'font-size':10, 'font-family':'IBM Plex Mono, monospace'});
+      vt.textContent = d.value;
+      svg.appendChild(vt);
+    });
+  } else {
+    for(let g=0; g<=3; g++){
+      const v = maxV*g/3;
+      const y = H-pad.b - (v/maxV)*(H-pad.t-pad.b);
+      svg.appendChild(svgEl('line', {x1:pad.l, x2:W-pad.r, y1:y, y2:y, stroke:gridColor, 'stroke-width':1}));
+    }
+    const bw = (W-pad.l-pad.r)/n * 0.6;
+    const gap = (W-pad.l-pad.r)/n;
+    data.forEach((d,i)=>{
+      const x = pad.l + i*gap + (gap-bw)/2;
+      const h = (d.value/maxV) * (H-pad.t-pad.b);
+      const bar = svgEl('rect', {x, y:H-pad.b, width:bw, height:0, rx:3, fill:d.color||getCss('--data')});
+      svg.appendChild(bar);
+      requestAnimationFrame(()=>{ bar.style.transition='height .55s cubic-bezier(.16,.8,.24,1), y .55s cubic-bezier(.16,.8,.24,1)'; bar.setAttribute('height', Math.max(1,h)); bar.setAttribute('y', H-pad.b-h); });
+      svg.appendChild(svgEl('text', {x:x+bw/2, y:H-8, fill:textColor, 'font-size':9, 'text-anchor':'middle', 'font-family':'Inter,sans-serif'})).textContent = d.label;
+    });
+  }
+  container.innerHTML = '';
+  container.appendChild(svg);
+}
+
+/* ================================================================
+   SCREEN: ANALYTICS (secondary) — "Are we going to meet the deadline?"
+   Zero external chart dependency — hand-rolled inline SVG only.
+   ================================================================ */
+function renderAnalytics(){
+  ensureBaseline();
+  return `
+  <div class="screen-head"><div><span class="screen-question">Are we going to meet the deadline?</span><h2>Analytics</h2><p>Portfolio-level trends and performance · <span style="color:var(--warn);font-weight:700;">DEMO / SIMULATED DATA</span></p></div></div>
+  <div class="grid g-2" style="margin-bottom:16px;">
+    <div class="card">
+      <div class="card-head"><h3>Baseline vs SURGE Completion</h3><span class="hint">day-by-day projection</span></div>
+      <div class="card-pad"><div class="chart-box" id="chart-compare"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Zone Performance</h3><span class="hint">avg. priority score</span></div>
+      <div class="card-pad"><div class="chart-box" id="chart-zone"></div></div>
+    </div>
+  </div>
+  <div class="grid g-2">
+    <div class="card">
+      <div class="card-head"><h3>Critical Backlog Trend</h3><span class="hint">optimized run · day-by-day</span></div>
+      <div class="card-pad"><div class="chart-box" id="chart-critical-trend"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Agent Utilization</h3><span class="hint">assigned vs capacity, %</span></div>
+      <div class="card-pad"><div class="chart-box" id="chart-util"></div></div>
+    </div>
+  </div>
+  `;
+}
+function renderAnalyticsCharts(){
+  const b = state.baselineResult || runSimulation({agentCount:state.agents.length, days:state.daysRemaining, optimizedRouting:false, docCopilot:false, compliantOffload:false});
+  const o = state.optimizedResult || runSimulation({agentCount:state.agents.length, days:state.daysRemaining, optimizedRouting:true, docCopilot:true, compliantOffload:false});
+  state.baselineResult = b; state.optimizedResult = o;
+
+  const c1 = document.getElementById('chart-compare');
+  if(c1) svgLineChart(c1, [
+    {label:'Baseline', color:getCss('--text-faint'), dashed:true, data:b.timeline.map(t=>({x:'D'+t.day,y:t.pct}))},
+    {label:'SURGE Optimized', color:getCss('--accent'), fill:true, data:o.timeline.map(t=>({x:'D'+t.day,y:t.pct}))},
+  ], {suffix:'%', maxY:100});
+
+  const c2 = document.getElementById('chart-zone');
+  if(c2){
+    const zoneData = ZONES.map(z=>{
+      const zm = MERCHANTS.filter(m=>m.zoneId===z.id);
+      return {label:z.name.split(' ')[0], value: Math.round(zm.reduce((s,m)=>s+computePriority(m,state.daysRemaining).score,0)/zm.length), color:getCss('--data')};
+    });
+    svgBarChart(c2, zoneData);
+  }
+
+  const c3 = document.getElementById('chart-critical-trend');
+  if(c3) svgLineChart(c3, [
+    {label:'Critical Backlog', color:getCss('--critical'), fill:true, data:o.timeline.map(t=>({x:'D'+t.day,y:t.criticalRemaining}))},
+  ], {legend:false});
+
+  const c4 = document.getElementById('chart-util');
+  if(c4){
+    buildAgentWorkloads();
+    const utilData = state.agents.map(a=>({label:a.name.split(' ')[0], value:a.utilPct, color: a.utilPct>100?getCss('--critical'):getCss('--data')}));
+    svgBarChart(c4, utilData);
+  }
+}
+
+/* ================================================================
+   SCREEN: ALERTS (secondary)
+   ================================================================ */
+function computeAlerts(){
+  // Every alert below is recomputed synchronously from the current
+  // MERCHANTS/agents/zone state on each render — there is no
+  // background event log, so "when" labels describe why the alert
+  // exists rather than claiming a fake elapsed time (a prior version
+  // hardcoded strings like "12 min ago", which would never change
+  // and could read as fake activity in a demo).
+  const alerts = [];
+  const critical = MERCHANTS.filter(m => m.revenueMonthly>250000 && m.priorAttempts>0);
+  critical.slice(0,4).forEach(m => alerts.push({
+    level:'critical', title:`${m.name} at risk of missing deadline`,
+    detail:`${fmtINR(m.revenueMonthly)}/mo volume, ${m.priorAttempts} failed attempt(s), ${state.daysRemaining} days left.`,
+    when:'Live', id:m.id,
+  }));
+  buildAgentWorkloads();
+  state.agents.filter(a=>a.utilPct>112).slice(0,4).forEach(a => alerts.push({
+    level:'warn', title:`${a.name} over daily capacity`,
+    detail:`${a.assigned} visits assigned against ${a.capacity} capacity in ${a.zoneName}.`,
+    when:'Live',
+  }));
+  const zoneBacklog = ZONES.map(z => ({z, n: MERCHANTS.filter(m=>m.zoneId===z.id && m.status!=='verified').length}))
+    .sort((a,b)=>b.n-a.n)[0];
+  if(zoneBacklog) alerts.push({
+    level:'warn', title:`${zoneBacklog.z.name} carries the largest backlog`,
+    detail:`${zoneBacklog.n} merchants still pending verification — consider reallocating an agent from a lighter zone.`,
+    when:'Live',
+  });
+  alerts.push({level:'good', title:'Compliant-path rule engine active', detail:`${MERCHANTS.filter(m=>evaluateCompliantPath(m).eligible).length} merchants currently qualify for the remote path and can be offloaded from field queues.`, when:'Live'});
+  if(state.daysRemaining<=10) alerts.push({level:'critical', title:'Deadline inside 10-day window', detail:`RBI re-KYC deadline is ${DEADLINE_LABEL}. At current baseline pace, ${(100-(state.baselineResult?.completionPct||71)).toFixed(0)}% of the backlog is projected to miss it.`, when:'Live'});
+  return alerts;
+}
+function renderAlerts(){
+  ensureBaseline();
+  const alerts = computeAlerts();
+  const icons = {critical:'!', warn:'⚠', good:'✓'};
+  return `
+  <div class="card">
+    <div class="card-head"><h3>Active Alerts</h3><span class="hint">${alerts.length} items · computed live from current backlog</span></div>
+    <div>
+    ${alerts.map(a => `
+      <div class="alert-row ${a.level}" ${a.id?`data-open-merchant="${a.id}" style="cursor:pointer;"`:''}>
+        <div class="alert-ic">${icons[a.level]}</div>
+        <div><h4>${a.title}</h4><p>${a.detail}</p></div>
+        <div class="when">${a.when}</div>
+      </div>
+    `).join('')}
+    </div>
+  </div>
+  `;
+}
+
+/* ================================================================
+   OPTIMIZE FLOW — real staged sequence, then KPIs animate old→new.
+   onFinish(before, after) lets the calling screen decide how to
+   present the transition (Command Center animates 2 KPI numbers,
+   Field Operations re-renders the Before→After delta rows, Live Map
+   redraws routes with a fade/draw transition).
+   ================================================================ */
+function runOptimizeSequence(onFinish){
+  const overlay = document.getElementById('optimize-overlay');
+  const stepsEl = document.getElementById('opt-steps');
+  const steps = ['Analyzing backlog…','Evaluating deadline pressure…','Allocating agent capacity…','Optimizing assignments…','Plan ready.'];
+  stepsEl.innerHTML = steps.map(s=>`<div class="step">${s}</div>`).join('');
+  overlay.classList.add('show');
+  const stepEls = [...stepsEl.children];
+  document.querySelectorAll('[data-optimize-btn]').forEach(b=>b.disabled = true);
+  const stepDur = prefersReducedMotion() ? 0 : 420;
+  let i=0;
+  function next(){
+    if(i>0) stepEls[i-1].classList.add('done');
+    if(i<stepEls.length){ stepEls[i].classList.add('show'); i++; setTimeout(next, stepDur); }
+    else {
+      setTimeout(()=>{
+        const before = currentResult();
+        const after = runSimulation({agentCount:state.agents.length, days:state.daysRemaining, optimizedRouting:true, docCopilot:true, compliantOffload:false});
+        state.optimizedResult = after;
+        state.mode = 'optimized';
+        overlay.classList.remove('show');
+        document.querySelectorAll('[data-optimize-btn]').forEach(b=>b.disabled = false);
+        if(typeof onFinish === 'function') onFinish(before, after); else navigate('command-center');
+      }, prefersReducedMotion() ? 0 : 350);
+    }
+  }
+  next();
+}
+function animateTopbarStats(before, after){
+  const compEl = document.getElementById('tb-completion'), critEl = document.getElementById('tb-critical');
+  if(compEl) animateNumber(compEl, before.completionPct, after.completionPct, {format:fmtPct});
+  if(critEl) animateNumber(critEl, before.criticalRemaining, after.criticalRemaining, {format:v=>Math.round(v)});
+}
+function onOptimizeFromCommandCenter(before, after){
+  navigate('command-center');
+  const compEl = document.getElementById('kpi-completion'), critEl = document.getElementById('kpi-critical');
+  animateNumber(compEl, before.completionPct, after.completionPct, {format:fmtPct});
+  animateNumber(critEl, before.criticalRemaining, after.criticalRemaining, {format:v=>Math.round(v)});
+  const dEl = document.getElementById('kpi-completion-d');
+  if(dEl) dEl.innerHTML = `↑ ${(after.completionPct-before.completionPct).toFixed(1)}pt vs baseline`;
+  animateTopbarStats(before, after);
+  renderCriticalList();
+}
+function onOptimizeFromFieldOps(before, after){
+  const completionEl = document.getElementById('fo-completion');
+  const utilBefore = (() => { const w=computeAgentWorkloads(before); const c=w.reduce((s,a)=>s+a.capacity,0),a=w.reduce((s,x)=>s+x.assigned,0); return c?Math.round(a/c*100):0; })();
+  const utilAfter = (() => { const w=computeAgentWorkloads(after); const c=w.reduce((s,a)=>s+a.capacity,0),a=w.reduce((s,x)=>s+x.assigned,0); return c?Math.round(a/c*100):0; })();
+  animateNumber(completionEl, before.completionPct, after.completionPct, {format:fmtPct});
+  const travelEl = document.getElementById('fo-travel');
+  if(travelEl) travelEl.textContent = routeEfficiencyLabel(after);
+  const utilEl = document.getElementById('fo-util');
+  animateNumber(utilEl, utilBefore, utilAfter, {format:v=>Math.round(v)+'%'});
+  const critEl = document.getElementById('fo-critical');
+  animateNumber(critEl, before.criticalRemaining, after.criticalRemaining, {format:v=>Math.round(v)});
+  animateTopbarStats(before, after);
+  buildAgentWorkloads();
+  document.querySelectorAll('#agent-grid .agent-card').forEach(card=>{
+    const a = state.agents.find(x=>x.id===card.dataset.openAgent);
+    if(!a) return;
+    card.querySelector('.util-track i').style.width = Math.min(a.utilPct,100)+'%';
+    card.querySelector('.util-track i').classList.toggle('over', a.utilPct>100);
+  });
+  const deltasEl = document.getElementById('fo-deltas');
+  if(deltasEl){ deltasEl.innerHTML = fieldOpsDeltasHtml(); }
+}
+
+/* ================================================================
+   EVENT WIRING
+   ================================================================ */
+const SCREEN_RENDERERS = {
+  'command-center': renderCommandCenter,
+  'merchant-intelligence': renderMerchantIntelligence,
+  'priority-queue': renderPriorityQueue,
+  'field-operations': renderFieldOperations,
+  'operational-map': renderOperationalMap,
+  'document-copilot': renderDocumentCopilot,
+  'compliant-path': renderCompliantPath,
+  'simulator': renderSimulator,
+  'analytics': renderAnalytics,
+  'alerts': renderAlerts,
+};
+
+function openAgentPanel(id){
+  state.selectedAgentId = id;
+  document.querySelectorAll('.agent-card').forEach(c=>c.classList.toggle('selected', c.dataset.openAgent===id));
+  renderAgentWorkload(id);
+}
+
+function wireScreenEvents(route){
+  const root = document.getElementById('screen-root');
+
+  root.querySelectorAll('[data-open-merchant]').forEach(el => {
+    el.addEventListener('click', (e) => { if(e.target.closest('[data-why]')) return; openMerchantDetail(el.dataset.openMerchant); });
+  });
+
+  if(route==='command-center'){
+    renderCriticalList();
+    document.getElementById('btn-optimize').addEventListener('click', ()=>runOptimizeSequence(onOptimizeFromCommandCenter));
+  }
+
+  if(route==='merchant-intelligence'){
+    const s = document.getElementById('m-search'), z = document.getElementById('m-zone'), st = document.getElementById('m-status');
+    s.addEventListener('input', e => { state.merchantFilters.search = e.target.value; refreshScreen(); });
+    z.addEventListener('change', e => { state.merchantFilters.zone = e.target.value; refreshScreen(); });
+    st.addEventListener('change', e => { state.merchantFilters.status = e.target.value; refreshScreen(); });
+  }
+
+  if(route==='priority-queue'){
+    const slider = document.getElementById('focus-slider');
+    let rafPending = false;
+    slider.addEventListener('input', e => {
+      state.priorityFocus = +e.target.value;
+      if(!rafPending){
+        rafPending = true;
+        requestAnimationFrame(()=>{ rafPending=false; updatePriorityRanking(); });
+      }
+    });
+    wirePriorityWhyButtons();
+    wireOpenMerchantLinks();
+  }
+
+  if(route==='field-operations'){
+    root.querySelectorAll('[data-open-agent]').forEach(el => el.addEventListener('click', ()=>openAgentPanel(el.dataset.openAgent)));
+    if(state.selectedAgentId) renderAgentWorkload(state.selectedAgentId);
+    document.getElementById('btn-generate-plan').addEventListener('click', ()=>runOptimizeSequence(onOptimizeFromFieldOps));
+  }
+
+  if(route==='document-copilot'){
+    const dz = document.getElementById('dropzone'), input = document.getElementById('doc-file');
+    dz.addEventListener('click', ()=>input.click());
+    input.addEventListener('change', e => { if(e.target.files[0]) analyzeImageFile(e.target.files[0]); });
+    ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();dz.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();dz.classList.remove('drag');}));
+    dz.addEventListener('drop', e => { const f=e.dataTransfer.files[0]; if(f) analyzeImageFile(f); });
+    document.getElementById('btn-match').addEventListener('click', runNameMatch);
+    const matchToggle = document.getElementById('match-toggle'), matchBody = document.getElementById('match-body');
+    matchToggle.addEventListener('click', ()=>{
+      const open = matchBody.hasAttribute('hidden');
+      if(open){ matchBody.removeAttribute('hidden'); matchToggle.classList.add('open'); }
+      else { matchBody.setAttribute('hidden',''); matchToggle.classList.remove('open'); }
+    });
+  }
+
+  if(route==='simulator'){
+    const slA = document.getElementById('sl-agents'), slD = document.getElementById('sl-days'), slR = document.getElementById('sl-repeat');
+    let rafPending = false;
+    function scheduleUpdate(){ if(!rafPending){ rafPending=true; requestAnimationFrame(()=>{ rafPending=false; runSimAndUpdate(); }); } }
+    slA.addEventListener('input', e => { state.simParams.agentCount = +e.target.value; document.getElementById('lbl-agents').textContent = e.target.value; scheduleUpdate(); });
+    slD.addEventListener('input', e => { state.simParams.days = +e.target.value; document.getElementById('lbl-days').textContent = e.target.value; scheduleUpdate(); });
+    slR.addEventListener('input', e => { state.simParams.repeatVisitRate = +e.target.value; document.getElementById('lbl-repeat').textContent = e.target.value+'%'; scheduleUpdate(); });
+    document.getElementById('tg-routing').addEventListener('click', function(){ state.simParams.optimizedRouting=!state.simParams.optimizedRouting; this.classList.toggle('on'); runSimAndUpdate(); });
+    document.getElementById('tg-copilot').addEventListener('click', function(){ state.simParams.docCopilot=!state.simParams.docCopilot; this.classList.toggle('on'); runSimAndUpdate(); });
+    document.getElementById('tg-offload').addEventListener('click', function(){ state.simParams.compliantOffload=!state.simParams.compliantOffload; this.classList.toggle('on'); runSimAndUpdate(); });
+    runSimAndUpdate();
+  }
+}
+function refreshScreen(){
+  const root = document.getElementById('screen-root');
+  root.innerHTML = SCREEN_RENDERERS[state.route]();
+  wireScreenEvents(state.route);
+}
+
+/* ================================================================
+   AMBIENT BACKGROUND (post-entry, persistent across every screen)
+   A slow, low-opacity "live operations" visualization behind the
+   UI: faint regional hubs (echoing ZONES / the intro's map
+   language), merchant nodes, field-agent nodes drifting between
+   zones, flowing agent→merchant route lines, data particles
+   travelling those routes, and occasional verification pulses.
+   Reads state.route each frame (cheap) so it can lean into the
+   theme of whichever screen is open without re-initializing.
+   Never intercepts input (pointer-events:none) and never paints
+   over UI — every real surface (sidebar/topbar/cards) has its own
+   opaque background; only the empty page gutters reveal this.
+   ================================================================ */
+function initAmbientBackground(){
+  const canvas = document.getElementById('app-ambient');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W,H,DPR;
+  function resize(){
+    DPR = Math.min(1.5, window.devicePixelRatio||1);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W*DPR; canvas.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Regional hubs — reuses the same ZONES cx/cy the intro and Live
+  // Map use, so the ambient layer reads as the same operational
+  // geography, not a decorative unrelated background.
+  const hubs = ZONES.map(z => ({x:z.cx, y:z.cy}));
+
+  // Merchant nodes: many, small, mostly dim — clustered loosely
+  // around a zone hub (never a literal map, just "regions of work").
+  const N_M = 46;
+  const merchants = Array.from({length:N_M}, (_,i) => {
+    const hub = hubs[i % hubs.length];
+    const critical = i % 9 === 0; // a stable minority read as higher-priority
+    return {
+      hub, critical,
+      x: clamp(hub.x + (Math.random()-0.5)*0.16, 0.02, 0.98),
+      y: clamp(hub.y + (Math.random()-0.5)*0.16, 0.05, 0.95),
+      vx:(Math.random()-0.5)*0.00006, vy:(Math.random()-0.5)*0.00006,
+      pulseAt: -1,
+    };
+  });
+
+  // Agent nodes: 12, one drifting "assignment" target merchant each,
+  // slowly travelling toward it and re-targeting on arrival — this
+  // is what reads as "field agents moving between locations".
+  const agents = Array.from({length:12}, (_,i) => {
+    const hub = hubs[i % hubs.length];
+    const a = { x: hub.x, y: hub.y, hubIdx: i % hubs.length, targetIdx: null, t: 0, speed: 0.0011 + Math.random()*0.0006 };
+    return a;
+  });
+  function poolFor(agent){ return merchants.filter(m => m.hub === hubs[agent.hubIdx]); }
+  function retarget(agent){
+    const pool = poolFor(agent);
+    const m = pool.length ? pool[Math.floor(Math.random()*pool.length)] : merchants[Math.floor(Math.random()*merchants.length)];
+    agent.targetIdx = merchants.indexOf(m);
+    agent.fromX = agent.x; agent.fromY = agent.y;
+    agent.t = 0;
+  }
+  agents.forEach(retarget);
+
+  let lastPulse = 0, dashPhase = 0;
+
+  function screenMode(){
+    const r = state.route;
+    if(r==='priority-queue') return 'priority';
+    if(r==='field-operations') return 'field';
+    if(r==='operational-map') return 'map';
+    if(r==='document-copilot') return 'docs';
+    if(r==='simulator') return 'simulator';
+    return 'default';
+  }
+
+  function draw(now){
+    ctx.clearRect(0,0,W,H);
+    const css = getComputedStyle(document.documentElement);
+    const dataColor = css.getPropertyValue('--data').trim() || '#0f8a83';
+    const accentColor = css.getPropertyValue('--accent').trim() || '#c5601f';
+    const criticalColor = css.getPropertyValue('--critical').trim() || '#b3261e';
+    const mode = screenMode();
+    const routeStrength = mode==='map' ? 1.55 : mode==='field' ? 1.2 : 1;
+    const pulseInterval = mode==='docs' ? 1400 : mode==='priority' ? 1700 : 2600;
+    // What-If: agent throughput visually tracks the capacity slider
+    const agentRatio = (state.route==='simulator' && state.simParams) ? clamp(state.simParams.agentCount/12, 0.3, 1.4) : 1;
+
+    // 1) faint regional hubs — the "map-grid" layer
+    hubs.forEach(h=>{
+      ctx.beginPath(); ctx.arc(h.x*W, h.y*H, 34, 0, Math.PI*2);
+      ctx.strokeStyle = dataColor; ctx.globalAlpha = 0.26; ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // 2) merchant nodes drift very slightly within their hub
+    merchants.forEach(m=>{
+      m.x += m.vx; m.y += m.vy;
+      if(Math.abs(m.x-m.hub.x) > 0.1) m.vx *= -1;
+      if(Math.abs(m.y-m.hub.y) > 0.1) m.vy *= -1;
+    });
+
+    // 3) agents travel slowly toward their current target merchant
+    agents.forEach(a=>{
+      const target = merchants[a.targetIdx];
+      if(!target){ return; }
+      a.t = clamp(a.t + a.speed*agentRatio*(mode==='field'?1.4:1), 0, 1);
+      const e = easeInOut(a.t);
+      a.x = lerp(a.fromX, target.x, e);
+      a.y = lerp(a.fromY, target.y, e);
+      if(a.t>=1) retarget(a);
+    });
+
+    // 4) flowing route lines: each agent to its target, animated dash
+    dashPhase = (dashPhase + 0.35) % 16;
+    agents.forEach(a=>{
+      const target = merchants[a.targetIdx];
+      if(!target) return;
+      ctx.beginPath(); ctx.moveTo(a.x*W, a.y*H); ctx.lineTo(target.x*W, target.y*H);
+      ctx.strokeStyle = accentColor; ctx.globalAlpha = 0.34*routeStrength; ctx.lineWidth = 1.1;
+      ctx.setLineDash([3,5]); ctx.lineDashOffset = -dashPhase;
+      ctx.stroke(); ctx.setLineDash([]);
+    });
+
+    // 5) data particles travelling the same routes
+    agents.forEach((a,i)=>{
+      const target = merchants[a.targetIdx];
+      if(!target) return;
+      const pt = (a.t*3 + i*0.37) % 1;
+      const px = lerp(a.x, target.x, pt), py = lerp(a.y, target.y, pt);
+      ctx.beginPath(); ctx.arc(px*W, py*H, 1.6, 0, Math.PI*2);
+      ctx.fillStyle = dataColor; ctx.globalAlpha = 0.7*routeStrength; ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // 6) merchant dots (critical ones tinted, brighter under AI Priority)
+    merchants.forEach(m=>{
+      const isCriticalTint = m.critical && (mode==='priority' || mode==='default');
+      ctx.beginPath(); ctx.arc(m.x*W, m.y*H, isCriticalTint?2.2:1.6, 0, Math.PI*2);
+      ctx.fillStyle = isCriticalTint ? criticalColor : dataColor;
+      ctx.globalAlpha = isCriticalTint ? 0.65 : 0.42;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // 7) agent dots
+    agents.forEach(a=>{
+      ctx.beginPath(); ctx.arc(a.x*W, a.y*H, mode==='field'?3.4:2.7, 0, Math.PI*2);
+      ctx.fillStyle = accentColor; ctx.globalAlpha = 0.75; ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // 8) occasional verification pulses — a merchant briefly rings out.
+    // Document Copilot reads these as a small verification glyph
+    // instead of a plain ring, to lean into "checking a document".
+    if(now - lastPulse > pulseInterval){
+      lastPulse = now;
+      const m = merchants[Math.floor(Math.random()*merchants.length)];
+      m.pulseAt = now;
+    }
+    merchants.forEach(m=>{
+      if(m.pulseAt<0) return;
+      const t = (now - m.pulseAt) / 1100;
+      if(t>1){ m.pulseAt = -1; return; }
+      const alpha = (1-t)*0.65;
+      if(mode==='docs'){
+        const s = 5 + t*7;
+        ctx.strokeStyle = dataColor; ctx.globalAlpha = alpha; ctx.lineWidth = 1.2;
+        ctx.strokeRect(m.x*W - s/2, m.y*H - s/2, s, s*1.3);
+      } else {
+        ctx.beginPath(); ctx.arc(m.x*W, m.y*H, 3 + t*16, 0, Math.PI*2);
+        ctx.strokeStyle = m.critical ? criticalColor : dataColor;
+        ctx.globalAlpha = alpha; ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  if(prefersReducedMotion()){ draw(0); return; }
+  function loop(now){ draw(now); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+}
+
+/* ================================================================
+   INTRO — cinematic scene-state-machine sequence
+   Canvas draws particle/network visuals only; all typographic
+   content (captions, countdown, logo, tagline) is real DOM text
+   overlaid on top, per the "canvas text is blurry" rule.
+   ================================================================ */
+function lerp(a,b,t){ return a+(b-a)*t; }
+function easeInOut(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+function buildIntroParticles(){
+  const N_M = 140, cols=20, rows=7;
+  const merchants = Array.from({length:N_M}, (_,i) => {
+    const zoneIdx = i % ZONES.length;
+    const priority = Math.random();
+    return { zoneIdx, priority, critical: priority>0.78,
+      scatter:{x:Math.random(), y:Math.random()},
+      pile:{x:0.5+(Math.random()-0.5)*0.12, y:0.5+(Math.random()-0.5)*0.12},
+    };
+  });
+  // dense grid ("sparse" scene — many merchants vs few agents)
+  merchants.forEach((p,i)=>{
+    const col = i%cols, row = Math.floor(i/cols);
+    p.sparse = {x: 0.06+col*(0.88/(cols-1)), y: 0.32+row*(0.6/(rows-1))};
+  });
+  // zone hub clusters, echoing the real Live Map layout
+  merchants.forEach(p=>{
+    const z = ZONES[p.zoneIdx];
+    p.zone = {x: clamp(z.cx+(Math.random()-0.5)*0.14,0.03,0.97), y: clamp(z.cy+(Math.random()-0.5)*0.14,0.08,0.94)};
+  });
+  // reorganized: grid ordered by priority desc (top-left = highest)
+  const byPriority = merchants.slice().sort((a,b)=>b.priority-a.priority);
+  byPriority.forEach((p,i)=>{
+    const col = i%cols, row = Math.floor(i/cols);
+    p.sorted = {x:0.06+col*(0.88/(cols-1)), y:0.32+row*(0.6/(rows-1))};
+  });
+
+  const agents = Array.from({length:12}, (_,i) => {
+    const zoneIdx = i % ZONES.length;
+    const z = ZONES[zoneIdx];
+    return {
+      zoneIdx,
+      sparse:{x:0.08+i*(0.84/11), y:0.15},
+      zone:{x:clamp(z.cx+(Math.random()-0.5)*0.05,0.05,0.95), y:clamp(z.cy-0.02,0.05,0.95)},
+      sorted:{x:0.08+i*(0.84/11), y:0.90},
+    };
+  });
+  return {merchants, agents};
+}
+
+function initIntro(){
+  const canvas = document.getElementById('intro-canvas');
+  const ctx = canvas.getContext('2d');
+  let W,H,DPR;
+  function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight; canvas.width=W*DPR; canvas.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  resize(); window.addEventListener('resize', resize);
+
+  const {merchants: introMerchants, agents: introAgents} = buildIntroParticles();
+
+  const SCENES = [
+    {caption:'500 merchants require re-verification.', dur:1100, posFrom:null, posTo:'scatter'},
+    {caption:'Just 12 field agents to cover all of them.', dur:1200, posFrom:'scatter', posTo:'sparse'},
+    {caption:null, big:true, dur:1300, posFrom:'sparse', posTo:'sparse'},
+    {caption:'Every case adds to the verification backlog.', dur:1100, posFrom:'sparse', posTo:'pile'},
+    {caption:'Merchants and agents, mapped by zone.', dur:1300, posFrom:'pile', posTo:'zone'},
+    {caption:'SURGE analyzes the backlog in real time.', dur:1400, posFrom:'zone', posTo:'zone', scan:true},
+    {caption:'AI prioritizes merchants by risk and impact.', dur:1300, posFrom:'zone', posTo:'sorted'},
+    {caption:'Workforce and routes optimize into a live plan.', dur:1300, posFrom:'sorted', posTo:'sorted', routes:true},
+    {caption:null, logo:true, dur:1100, posFrom:'sorted', posTo:'sorted', fadeParticles:true},
+    {caption:null, desc:true, dur:1300, posFrom:'sorted', posTo:'sorted', fadeParticles:true},
+    {caption:null, tagline:true, dur:1600, posFrom:'sorted', posTo:'sorted', fadeParticles:true},
+  ];
+  let cum=0; SCENES.forEach(s=>{ s.start=cum; cum+=s.dur; });
+  const TOTAL = cum;
+
+  const captionEl = document.getElementById('intro-caption');
+  const bigEl = document.getElementById('intro-big');
+  const logoEl = document.getElementById('intro-logo');
+  const descEl = document.getElementById('intro-desc');
+  const taglineEl = document.getElementById('intro-tagline');
+  const enterBtn = document.getElementById('intro-enter');
+  const progressEl = document.getElementById('intro-progress');
+  progressEl.innerHTML = SCENES.map(()=>'<i></i>').join('');
+  const dotEls = [...progressEl.children];
+  const DESC_TEXT = 'AI-powered operational planning for completing large-scale merchant verification before regulatory deadlines.';
+  const TAGLINE_TEXT = 'Turn regulatory deadlines into executable operations.';
+
+  function resetOverlays(){
+    captionEl.classList.remove('show');
+    bigEl.classList.remove('show'); bigEl.hidden = true;
+    logoEl.classList.remove('show'); logoEl.hidden = true;
+    descEl.classList.remove('show'); descEl.hidden = true;
+    taglineEl.classList.remove('show'); taglineEl.hidden = true;
+  }
+  function applyScene(sc){
+    resetOverlays();
+    if(sc.caption){ captionEl.textContent = sc.caption; requestAnimationFrame(()=>captionEl.classList.add('show')); }
+    if(sc.big){ bigEl.hidden = false; bigEl.innerHTML = `${state.daysRemaining}<small>DAYS TO DEADLINE</small>`; requestAnimationFrame(()=>bigEl.classList.add('show')); }
+    if(sc.logo){ logoEl.hidden = false; requestAnimationFrame(()=>logoEl.classList.add('show')); }
+    if(sc.desc){
+      logoEl.hidden = false; logoEl.classList.add('show');
+      descEl.hidden = false; descEl.textContent = DESC_TEXT;
+      requestAnimationFrame(()=>descEl.classList.add('show'));
+    }
+    if(sc.tagline){
+      logoEl.hidden = false; logoEl.classList.add('show');
+      descEl.hidden = false; descEl.textContent = DESC_TEXT; descEl.classList.add('show');
+      taglineEl.hidden = false; taglineEl.textContent = TAGLINE_TEXT;
+      requestAnimationFrame(()=>taglineEl.classList.add('show'));
+      enterBtn.classList.add('show');
+    }
+  }
+
+  function drawFrame(sceneIdx, sc, progress){
+    ctx.clearRect(0,0,W,H);
+    const eased = easeInOut(progress);
+    introMerchants.forEach((p,i)=>{
+      let x,y,op;
+      if(sc.posFrom===null){
+        x=p.scatter.x; y=p.scatter.y;
+        op = clamp(progress*1.4 - (i/introMerchants.length)*0.9, 0, 1);
+      } else {
+        const from=p[sc.posFrom], to=p[sc.posTo];
+        x=lerp(from.x,to.x,eased); y=lerp(from.y,to.y,eased);
+        op = sceneIdx===2 ? 0.2 : 0.85;
+      }
+      if(sc.fadeParticles) op *= (1-progress);
+      if(op<=0.02) return;
+      const px=x*W, py=y*H;
+      if(p.critical){ ctx.shadowBlur=7; ctx.shadowColor=`rgba(239,83,80,${op*0.8})`; }
+      ctx.beginPath(); ctx.arc(px,py, p.critical?2.6:1.7, 0, Math.PI*2);
+      ctx.fillStyle = p.critical ? `rgba(239,83,80,${op})` : `rgba(200,210,218,${op*0.7})`;
+      ctx.fill();
+      ctx.shadowBlur=0;
+    });
+    introAgents.forEach((a) => {
+      if(sceneIdx<1) return;
+      const fromKey = ['scatter','pile',null].includes(sc.posFrom) ? 'sparse' : sc.posFrom;
+      const toKey = ['scatter','pile',null].includes(sc.posTo) ? 'sparse' : sc.posTo;
+      const from=a[fromKey]||a.sparse, to=a[toKey]||a.sparse;
+      const x=lerp(from.x,to.x,eased), y=lerp(from.y,to.y,eased);
+      let op = sceneIdx===1 ? progress : 1;
+      if(sc.fadeParticles) op *= (1-progress);
+      if(op<=0.02) return;
+      const px=x*W, py=y*H;
+      ctx.shadowBlur=9; ctx.shadowColor=`rgba(232,134,46,${op*0.55})`;
+      ctx.beginPath(); ctx.arc(px,py,4.2,0,Math.PI*2); ctx.fillStyle=`rgba(232,134,46,${op})`; ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.beginPath(); ctx.arc(px,py,7.5,0,Math.PI*2); ctx.strokeStyle=`rgba(232,134,46,${op*0.35})`; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    if(sceneIdx>=4 && sceneIdx<=7){
+      const hubOp = sc.fadeParticles ? 0 : 0.45;
+      ZONES.forEach(z=>{
+        const px=z.cx*W, py=z.cy*H;
+        ctx.beginPath(); ctx.arc(px,py,18,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(63,208,201,${hubOp})`; ctx.lineWidth=1.5; ctx.stroke();
+      });
+    }
+    if(sc.scan){
+      const sx = progress*W;
+      const grad = ctx.createLinearGradient(sx-70,0,sx+70,0);
+      grad.addColorStop(0,'rgba(63,208,201,0)'); grad.addColorStop(0.5,'rgba(63,208,201,0.16)'); grad.addColorStop(1,'rgba(63,208,201,0)');
+      ctx.fillStyle=grad; ctx.fillRect(sx-70,0,140,H);
+    }
+    if(sc.routes){
+      const op = clamp(progress*1.6,0,1)*0.55;
+      introAgents.forEach(a=>{
+        const targets = introMerchants.filter(m=>m.zoneIdx===a.zoneIdx).sort((m1,m2)=>m2.priority-m1.priority).slice(0,2);
+        const ax=a.sorted.x*W, ay=a.sorted.y*H;
+        targets.forEach(m=>{
+          const mx=m.sorted.x*W, my=m.sorted.y*H;
+          ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(mx,my);
+          ctx.strokeStyle=`rgba(232,134,46,${op})`; ctx.lineWidth=1; ctx.stroke();
+        });
+      });
+    }
+  }
+
+  let rafId=null, startTime=null, lastSceneIdx=-1;
+  function frame(now){
+    if(startTime===null) startTime=now;
+    const elapsed = now-startTime;
+    if(elapsed>=TOTAL){ drawFrame(SCENES.length-1, SCENES[SCENES.length-1], 1); return; }
+    let idx = SCENES.findIndex(s=>elapsed < s.start+s.dur);
+    if(idx===-1) idx = SCENES.length-1;
+    const sc = SCENES[idx];
+    const progress = clamp((elapsed-sc.start)/sc.dur, 0, 1);
+    if(idx!==lastSceneIdx){
+      lastSceneIdx = idx;
+      applyScene(sc);
+      dotEls.forEach((d,i)=>{ d.classList.toggle('done', i<idx); d.classList.toggle('active', i===idx); });
+    }
+    drawFrame(idx, sc, progress);
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function skipIntro(){
+    if(rafId) cancelAnimationFrame(rafId);
+    document.getElementById('intro').style.display = 'none';
+    enterApp();
+  }
+  function clickEnter(){
+    if(rafId) cancelAnimationFrame(rafId);
+    const intro = document.getElementById('intro');
+    intro.classList.add('exiting');
+    setTimeout(()=>{ intro.style.display='none'; }, prefersReducedMotion()?0:280);
+    enterApp();
+  }
+  document.getElementById('intro-skip').addEventListener('click', skipIntro);
+  enterBtn.addEventListener('click', clickEnter);
+
+  if(prefersReducedMotion()){
+    dotEls.forEach(d=>d.classList.add('done'));
+    logoEl.hidden=false; logoEl.classList.add('show');
+    descEl.hidden=false; descEl.textContent=DESC_TEXT; descEl.classList.add('show');
+    taglineEl.hidden=false; taglineEl.textContent=TAGLINE_TEXT; taglineEl.classList.add('show');
+    enterBtn.classList.add('show');
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+let ambientStarted = false;
+function enterApp(){
+  document.getElementById('app').classList.add('active');
+  if(!ambientStarted){ ambientStarted = true; initAmbientBackground(); }
+  if(!location.hash || location.hash==='#/') location.hash = '#/command-center';
+  navigate((location.hash.replace('#/','')) || 'command-center');
+}
+
+window.addEventListener('hashchange', () => {
+  const r = location.hash.replace('#/','');
+  if(document.getElementById('app').classList.contains('active') && SCREEN_RENDERERS[r]) navigate(r);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  initIntro();
+  renderNav();
+
+  function openMobileNav(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-scrim').classList.add('open'); }
+  function closeMobileNav(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-scrim').classList.remove('open'); }
+  document.getElementById('nav-toggle').addEventListener('click', openMobileNav);
+  document.getElementById('sidebar-scrim').addEventListener('click', closeMobileNav);
+});
+</script>
+</body>
+</html>
